@@ -63,6 +63,7 @@ class InteractionHead(Module):
         box_score_thresh: float = 0.2,
         max_human: int = 15,
         max_object: int = 15,
+        human_emotion: bool = True,
         # Misc
         distributed: bool = False
     ) -> None:
@@ -72,7 +73,7 @@ class InteractionHead(Module):
         self.box_pair_head = box_pair_head
         self.box_pair_suppressor = box_pair_suppressor
         self.box_pair_predictor = box_pair_predictor
-
+        self.human_emotion = human_emotion
         self.num_classes = num_classes
         self.human_idx = human_idx
 
@@ -86,7 +87,7 @@ class InteractionHead(Module):
     def preprocess(self,
         detections: List[dict],
         targets: List[dict],
-        append_gt: Optional[bool] = None
+        append_gt: Optional[bool] = None,
     ) -> None:
 
         results = []
@@ -108,6 +109,10 @@ class InteractionHead(Module):
                     target["object"],
                     labels
                 ])
+                if self.human_emotion:
+                    human_emotion = torch.cat([target['human_emotion'],human_emotion])
+
+                
 
             # Remove low scoring examples
             active_idx = torch.nonzero(
@@ -135,12 +140,21 @@ class InteractionHead(Module):
             keep_idx = torch.cat([h_idx, o_idx])
             active_idx = active_idx[keep_idx]
 
-            results.append(dict(
-                boxes=boxes[active_idx].view(-1, 4),
-                labels=labels[active_idx].view(-1),
-                scores=scores[active_idx].view(-1)
-            
-            ))
+            if self.human_emotion:
+                results.append(dict(
+                    boxes=boxes[active_idx].view(-1, 4), 
+                    labels=labels[active_idx].view(-1),
+                    scores=scores[active_idx].view(-1),
+                    #TODO: Check if this is actually correct
+                    human_emotion=human_emotion[active_idx],
+                ))
+            else:
+                results.append(dict(
+                    boxes=boxes[active_idx].view(-1, 4),
+                    labels=labels[active_idx].view(-1),
+                    scores=scores[active_idx].view(-1)
+                
+                ))
 
         return results
 
@@ -312,12 +326,14 @@ class InteractionHead(Module):
         box_labels = [detection['labels'] for detection in detections]
         box_scores = [detection['scores'] for detection in detections]
 
+        if self.emotion:
+            human_emotion = [detection['human_emotion'] for detection in detections]
         box_features = self.box_roi_pool(features, box_coords, image_shapes)
 
         box_pair_features, boxes_h, boxes_o, object_class,\
         box_pair_labels, box_pair_prior = self.box_pair_head(
             features, image_shapes, box_features,
-            box_coords, box_labels, box_scores, targets
+            box_coords, box_labels, box_scores,human_emotion, targets
         )
 
         box_pair_features = torch.cat(box_pair_features)
@@ -377,12 +393,23 @@ class MultiBranchFusion(Module):
             nn.Linear(sub_repr_size, representation_size)
             for _ in range(cardinality)
         ])
+        # Resize facial emotion features to representation size
+        # self.fc_4 = nn.ModuleList([
+        #     nn.Linear(face_size, representation_size)
+        #     for _ in range(cardinality)
+        # ])
     def forward(self, appearance: Tensor, spatial: Tensor) -> Tensor:
         return F.relu(torch.stack([
             fc_3(F.relu(fc_1(appearance) * fc_2(spatial)))
             for fc_1, fc_2, fc_3
             in zip(self.fc_1, self.fc_2, self.fc_3)
         ]).sum(dim=0))
+    # def forward(self, appearance: Tensor, spatial: Tensor, face: Tensor) -> Tensor:
+    #     return F.relu(torch.stack([
+    #         fc_3(F.relu(fc_1(appearance) * fc_2(spatial) * fc_4(face)))
+    #         for fc_1, fc_2, fc_3, fc_4
+    #         in zip(self.fc_1, self.fc_2, self.fc_3)
+    #     ]).sum(dim=0))
 
 class MessageMBF(MultiBranchFusion):
     """

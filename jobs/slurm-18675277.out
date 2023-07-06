@@ -1,0 +1,106 @@
+/users/PCS0269/jkbgsusc
+Collecting deepface
+  Using cached https://files.pythonhosted.org/packages/48/ae/b3e7704245ffa505e0733aadcb5794220e4a5b72941c51ee44548483c1cb/deepface-0.0.79-py3-none-any.whl
+Collecting retina-face>=0.0.1 (from deepface)
+  Using cached https://files.pythonhosted.org/packages/35/15/3082429720efa372b3a4a214583f69805227af18dba930b89abefe5ea066/retina_face-0.0.13-py3-none-any.whl
+Collecting tensorflow>=1.9.0 (from deepface)
+  Using cached https://files.pythonhosted.org/packages/43/da/35ed2b86c8c2d7cb2fc1f571bf2c7bcb0711bfef3c4b9d82a0d55decf19e/tensorflow-2.8.4-cp37-cp37m-manylinux2010_x86_64.whl
+Collecting gunicorn>=20.1.0 (from deepface)
+  Using cached https://files.pythonhosted.org/packages/e4/dd/5b190393e6066286773a67dfcc2f9492058e9b57c4867a95f1ba5caf0a83/gunicorn-20.1.0-py3-none-any.whl
+Requirement already satisfied: numpy>=1.14.0 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from deepface) (1.17.2)
+Requirement already satisfied: pandas>=0.23.4 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from deepface) (0.25.1)
+Collecting gdown>=3.10.1 (from deepface)
+  Using cached https://files.pythonhosted.org/packages/e7/38/e3393edb5fd157abaa54292f31251f8c2ff739673f535990f8a43e69b9dd/gdown-4.7.1-py3-none-any.whl
+Collecting Flask>=1.1.2 (from deepface)
+  Using cached https://files.pythonhosted.org/packages/9f/1a/8b6d48162861009d1e017a9740431c78d860809773b66cac220a11aa3310/Flask-2.2.5-py3-none-any.whl
+Requirement already satisfied: Pillow>=5.2.0 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from deepface) (6.2.0)
+Requirement already satisfied: tqdm>=4.30.0 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from deepface) (4.36.1)
+Collecting keras>=2.2.0 (from deepface)
+  Using cached https://files.pythonhosted.org/packages/de/44/bf1b0eef5b13e6201aef076ff34b91bc40aace8591cd273c1c2a94a9cc00/keras-2.11.0-py2.py3-none-any.whl
+Collecting opencv-python>=4.5.5.64 (from deepface)
+  Downloading https://files.pythonhosted.org/packages/fa/1d/990ad4eb4d385fabb2773170cf865977b6d5b558dd51459672f7cf7d1847/opencv-python-4.8.0.74.tar.gz (92.1MB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+    Preparing wheel metadata: started
+    Preparing wheel metadata: finished with status 'done'
+Collecting mtcnn>=0.1.0 (from deepface)
+  Using cached https://files.pythonhosted.org/packages/09/d1/2a4269e387edb97484157b872fa8a1953b53dcafbe4842a1967f549ac5ea/mtcnn-0.1.1-py3-none-any.whl
+Collecting fire>=0.4.0 (from deepface)
+Requirement already satisfied: setuptools in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorflow>=1.9.0->deepface) (41.4.0)
+Collecting tensorboard<2.9,>=2.8 (from tensorflow>=1.9.0->deepface)
+  Using cached https://files.pythonhosted.org/packages/f7/fd/67c61276de025801cfa8a1b9af2d7c577e7f27c17b6bff2baca20bf03543/tensorboard-2.8.0-py3-none-any.whl
+Collecting flatbuffers>=1.12 (from tensorflow>=1.9.0->deepface)
+  Using cached https://files.pythonhosted.org/packages/6f/12/d5c79ee252793ffe845d58a913197bfa02ae9a0b5c9bc3dc4b58d477b9e7/flatbuffers-23.5.26-py2.py3-none-any.whl
+Requirement already satisfied: h5py>=2.9.0 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorflow>=1.9.0->deepface) (2.9.0)
+Collecting astunparse>=1.6.0 (from tensorflow>=1.9.0->deepface)
+  Using cached https://files.pythonhosted.org/packages/2b/03/13dde6512ad7b4557eb792fbcf0c653af6076b81e5941d36ec61f7ce6028/astunparse-1.6.3-py2.py3-none-any.whl
+Requirement already satisfied: google-pasta>=0.1.1 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorflow>=1.9.0->deepface) (0.2.0)
+Requirement already satisfied: six>=1.12.0 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorflow>=1.9.0->deepface) (1.12.0)
+Collecting typing-extensions>=3.6.6 (from tensorflow>=1.9.0->deepface)
+  Using cached https://files.pythonhosted.org/packages/ec/6b/63cc3df74987c36fe26157ee12e09e8f9db4de771e0f3404263117e75b95/typing_extensions-4.7.1-py3-none-any.whl
+Requirement already satisfied: grpcio<2.0,>=1.24.3 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorflow>=1.9.0->deepface) (1.28.1)
+Collecting libclang>=9.0.1 (from tensorflow>=1.9.0->deepface)
+  Using cached https://files.pythonhosted.org/packages/a1/82/1fd88a2df784dbcfdfba7dbb335653f4178c7c73fa7fe95bae888e60d34b/libclang-16.0.0-py2.py3-none-manylinux2010_x86_64.whl
+Requirement already satisfied: termcolor>=1.1.0 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorflow>=1.9.0->deepface) (1.1.0)
+Collecting tensorflow-estimator<2.9,>=2.8 (from tensorflow>=1.9.0->deepface)
+  Using cached https://files.pythonhosted.org/packages/4e/42/cefc351e0e428ca9c460bfbd994ec9f01e5d8bd34f88c65a7ea807ecd67a/tensorflow_estimator-2.8.0-py2.py3-none-any.whl
+Requirement already satisfied: absl-py>=0.4.0 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorflow>=1.9.0->deepface) (0.9.0)
+Requirement already satisfied: protobuf<3.20,>=3.9.2 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorflow>=1.9.0->deepface) (3.11.3)
+Collecting tensorflow-io-gcs-filesystem>=0.23.1 (from tensorflow>=1.9.0->deepface)
+  Using cached https://files.pythonhosted.org/packages/c8/e3/ccbaed2c80c8fbcbddfc9500f175b1f90ba06d4a3c86a61ec8967a4e54e3/tensorflow_io_gcs_filesystem-0.32.0-cp37-cp37m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
+Requirement already satisfied: opt-einsum>=2.3.2 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorflow>=1.9.0->deepface) (3.2.1)
+Requirement already satisfied: keras-preprocessing>=1.1.1 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorflow>=1.9.0->deepface) (1.1.2)
+Requirement already satisfied: gast>=0.2.1 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorflow>=1.9.0->deepface) (0.2.2)
+Requirement already satisfied: wrapt>=1.11.0 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorflow>=1.9.0->deepface) (1.11.2)
+Requirement already satisfied: pytz>=2017.2 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from pandas>=0.23.4->deepface) (2019.3)
+Requirement already satisfied: python-dateutil>=2.6.1 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from pandas>=0.23.4->deepface) (2.8.0)
+Requirement already satisfied: beautifulsoup4 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from gdown>=3.10.1->deepface) (4.8.0)
+Requirement already satisfied: filelock in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from gdown>=3.10.1->deepface) (3.0.12)
+Requirement already satisfied: requests[socks] in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from gdown>=3.10.1->deepface) (2.22.0)
+Collecting Jinja2>=3.0 (from Flask>=1.1.2->deepface)
+  Using cached https://files.pythonhosted.org/packages/bc/c3/f068337a370801f372f2f8f6bad74a5c140f6fda3d9de154052708dd3c65/Jinja2-3.1.2-py3-none-any.whl
+Collecting itsdangerous>=2.0 (from Flask>=1.1.2->deepface)
+  Using cached https://files.pythonhosted.org/packages/68/5f/447e04e828f47465eeab35b5d408b7ebaaaee207f48b7136c5a7267a30ae/itsdangerous-2.1.2-py3-none-any.whl
+Collecting Werkzeug>=2.2.2 (from Flask>=1.1.2->deepface)
+  Using cached https://files.pythonhosted.org/packages/f6/f8/9da63c1617ae2a1dec2fbf6412f3a0cfe9d4ce029eccbda6e1e4258ca45f/Werkzeug-2.2.3-py3-none-any.whl
+Collecting click>=8.0 (from Flask>=1.1.2->deepface)
+  Using cached https://files.pythonhosted.org/packages/c2/f1/df59e28c642d583f7dacffb1e0965d0e00b218e0186d7858ac5233dce840/click-8.1.3-py3-none-any.whl
+Collecting importlib-metadata>=3.6.0; python_version < "3.10" (from Flask>=1.1.2->deepface)
+  Using cached https://files.pythonhosted.org/packages/ff/94/64287b38c7de4c90683630338cf28f129decbba0a44f0c6db35a873c73c4/importlib_metadata-6.7.0-py3-none-any.whl
+Requirement already satisfied: google-auth-oauthlib<0.5,>=0.4.1 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorboard<2.9,>=2.8->tensorflow>=1.9.0->deepface) (0.4.1)
+Requirement already satisfied: markdown>=2.6.8 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorboard<2.9,>=2.8->tensorflow>=1.9.0->deepface) (3.2.2)
+Requirement already satisfied: wheel>=0.26 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorboard<2.9,>=2.8->tensorflow>=1.9.0->deepface) (0.33.6)
+Collecting tensorboard-data-server<0.7.0,>=0.6.0 (from tensorboard<2.9,>=2.8->tensorflow>=1.9.0->deepface)
+  Using cached https://files.pythonhosted.org/packages/60/f9/802efd84988bffd9f644c03b6e66fde8e76c3aa33db4279ddd11c5d61f4b/tensorboard_data_server-0.6.1-py3-none-manylinux2010_x86_64.whl
+Requirement already satisfied: google-auth<3,>=1.6.3 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from tensorboard<2.9,>=2.8->tensorflow>=1.9.0->deepface) (1.14.3)
+Collecting tensorboard-plugin-wit>=1.6.0 (from tensorboard<2.9,>=2.8->tensorflow>=1.9.0->deepface)
+  Using cached https://files.pythonhosted.org/packages/e0/68/e8ecfac5dd594b676c23a7f07ea34c197d7d69b3313afdf8ac1b0a9905a2/tensorboard_plugin_wit-1.8.1-py3-none-any.whl
+Requirement already satisfied: soupsieve>=1.2 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from beautifulsoup4->gdown>=3.10.1->deepface) (1.9.3)
+Requirement already satisfied: urllib3!=1.25.0,!=1.25.1,<1.26,>=1.21.1 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from requests[socks]->gdown>=3.10.1->deepface) (1.24.2)
+Requirement already satisfied: chardet<3.1.0,>=3.0.2 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from requests[socks]->gdown>=3.10.1->deepface) (3.0.4)
+Requirement already satisfied: idna<2.9,>=2.5 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from requests[socks]->gdown>=3.10.1->deepface) (2.8)
+Requirement already satisfied: certifi>=2017.4.17 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from requests[socks]->gdown>=3.10.1->deepface) (2019.9.11)
+Requirement already satisfied: PySocks!=1.5.7,>=1.5.6; extra == "socks" in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from requests[socks]->gdown>=3.10.1->deepface) (1.7.1)
+Collecting MarkupSafe>=2.0 (from Jinja2>=3.0->Flask>=1.1.2->deepface)
+Requirement already satisfied: zipp>=0.5 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from importlib-metadata>=3.6.0; python_version < "3.10"->Flask>=1.1.2->deepface) (0.6.0)
+Requirement already satisfied: requests-oauthlib>=0.7.0 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from google-auth-oauthlib<0.5,>=0.4.1->tensorboard<2.9,>=2.8->tensorflow>=1.9.0->deepface) (1.3.0)
+Requirement already satisfied: rsa<4.1,>=3.1.4 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from google-auth<3,>=1.6.3->tensorboard<2.9,>=2.8->tensorflow>=1.9.0->deepface) (4.0)
+Requirement already satisfied: cachetools<5.0,>=2.0.0 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from google-auth<3,>=1.6.3->tensorboard<2.9,>=2.8->tensorflow>=1.9.0->deepface) (4.1.0)
+Requirement already satisfied: pyasn1-modules>=0.2.1 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from google-auth<3,>=1.6.3->tensorboard<2.9,>=2.8->tensorflow>=1.9.0->deepface) (0.2.8)
+Requirement already satisfied: more-itertools in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from zipp>=0.5->importlib-metadata>=3.6.0; python_version < "3.10"->Flask>=1.1.2->deepface) (7.2.0)
+Requirement already satisfied: oauthlib>=3.0.0 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from requests-oauthlib>=0.7.0->google-auth-oauthlib<0.5,>=0.4.1->tensorboard<2.9,>=2.8->tensorflow>=1.9.0->deepface) (3.1.0)
+Requirement already satisfied: pyasn1>=0.1.3 in /apps/python/3.7-2019.10/lib/python3.7/site-packages (from rsa<4.1,>=3.1.4->google-auth<3,>=1.6.3->tensorboard<2.9,>=2.8->tensorflow>=1.9.0->deepface) (0.4.8)
+Building wheels for collected packages: opencv-python
+  Building wheel for opencv-python (PEP 517): started
+  Building wheel for opencv-python (PEP 517): still running...
+  Building wheel for opencv-python (PEP 517): still running...
+  Building wheel for opencv-python (PEP 517): still running...
+  Building wheel for opencv-python (PEP 517): still running...
+  Building wheel for opencv-python (PEP 517): still running...
+  Building wheel for opencv-python (PEP 517): still running...
+  Building wheel for opencv-python (PEP 517): still running...
+  Building wheel for opencv-python (PEP 517): still running...
+  Building wheel for opencv-python (PEP 517): still running...
+slurmstepd: error: *** JOB 18675277 ON p0133 CANCELLED AT 2023-07-03T17:55:20 DUE TO TIME LIMIT ***

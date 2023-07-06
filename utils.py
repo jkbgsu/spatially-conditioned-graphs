@@ -137,7 +137,7 @@ class DataFactory(Dataset):
             w, _ = image.size
             self.flip_boxes(detection, target, w)
         image = pocket.ops.to_tensor(image, 'pil')
-
+# We may need to modify this to return the facial emotion tensor, where else is this used?
         return image, detection, target
 
 def test(net, test_loader):
