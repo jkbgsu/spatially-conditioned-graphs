@@ -93,9 +93,11 @@ class InteractionHead(Module):
         results = []
         test = 0
         for b_idx, detection in enumerate(detections):
+            print(f"detections are {detection}")
             boxes = detection['boxes']
             labels = detection['labels']
             scores = detection['scores']
+            human_emotions = detection['human_emotion']
             print(f"boxes are {boxes}")
             print(f"labels are {labels}")
             print(f"scores are {scores}")
@@ -118,11 +120,11 @@ class InteractionHead(Module):
             #if self.human_emotion:
             print(f"torch boxes are now: {boxes}")
             # Let's suppose the target['human_emotion'] is a tensor of size 3 filled with 1's
-            target_human_emotion = torch.ones(5)
+            #target_human_emotion = torch.ones(5)
 
             # And human_emotion is a tensor of size 3 filled with 2's
-            human_emotion = torch.full((3,), 2)
-            human_emotion = torch.cat([target['human_emotion'],human_emotion])
+            #human_emotion = torch.full((3,), 2)
+            human_emotion = torch.cat([detection['human_emotion'],human_emotions])
 
                 
 
@@ -343,7 +345,7 @@ class InteractionHead(Module):
         box_labels = [detection['labels'] for detection in detections]
         box_scores = [detection['scores'] for detection in detections]
 
-        if self.emotion:
+        if self.human_emotion:
             human_emotion = [detection['human_emotion'] for detection in detections]
         box_features = self.box_roi_pool(features, box_coords, image_shapes)
 
@@ -642,6 +644,7 @@ class GraphHead(Module):
         features: OrderedDict, image_shapes: List[Tuple[int, int]],
         box_features: Tensor, box_coords: List[Tensor],
         box_labels: List[Tensor], box_scores: List[Tensor],
+        human_emotion: List[Tensor],
         targets: Optional[List[dict]] = None
     ) -> Tuple[
         List[Tensor], List[Tensor], List[Tensor],
@@ -662,6 +665,8 @@ class GraphHead(Module):
                 Bounding box object types organised by images
             box_scores: List[Tensor]
                 Bounding box scores organised by images
+            human_emotions: List[Tensor]
+                Positional emotion scores
             targets: List[dict]
                 Interaction targets with the following keys
                 `boxes_h`: Tensor[G, 4]
@@ -681,6 +686,7 @@ class GraphHead(Module):
             assert targets is not None, "Targets should be passed during training"
 
         global_features = self.avg_pool(features['3']).flatten(start_dim=1)
+        box_features = torch.cat(box_features,human_emotion)
         box_features = self.box_head(box_features)
 
         num_boxes = [len(boxes_per_image) for boxes_per_image in box_coords]
@@ -689,10 +695,9 @@ class GraphHead(Module):
         all_boxes_h = []; all_boxes_o = []; all_object_class = []
         all_labels = []; all_prior = []
         all_box_pair_features = []
-        for b_idx, (coords, labels, scores) in enumerate(zip(box_coords, box_labels, box_scores)):
+        for b_idx, (coords, labels, scores,human_emotion) in enumerate(zip(box_coords, box_labels, box_scores,human_emotion)):
             n = num_boxes[b_idx]
             device = box_features.device
-
             n_h = torch.sum(labels == self.human_idx).item()
             # Skip image when there are no detected human or object instances
             # and when there is only one detected instance
