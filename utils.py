@@ -42,7 +42,8 @@ class DataFactory(Dataset):
             data_root, detection_root,
             flip=False,
             box_score_thresh_h=0.2,
-            box_score_thresh_o=0.2
+            box_score_thresh_o=0.2,
+            human_emotion=False
             ):
         if name not in ['hicodet', 'vcoco']:
             raise ValueError("Unknown dataset ", name)
@@ -53,7 +54,7 @@ class DataFactory(Dataset):
             self.dataset = HICODet(
                 root=os.path.join(data_root, 'hico_20160224_det/images', partition),
                 anno_file=os.path.join(data_root, 'instances_{}.json'.format(partition)),
-                target_transform=pocket.ops.ToTensor(input_format='dict')
+                target_transform=pocket.ops.ToTensor(input_format='dict'), human_emotion=human_emotion
             )
             self.human_idx = 49
         else:
@@ -113,7 +114,7 @@ class DataFactory(Dataset):
         target['boxes_o'] = pocket.ops.horizontal_flip_boxes(w, target['boxes_o'])
 
     def __getitem__(self, i):
-        image, target = self.dataset[i]
+        image, target = self.dataset[i] #This uses the pocket functionality: image, annotation = trainset[0]
         if self.name == 'hicodet':
             target['labels'] = target['verb']
             # Convert ground truth boxes to zero-based index and the
@@ -128,10 +129,28 @@ class DataFactory(Dataset):
             self.detection_root,
             self.dataset.filename(i).replace('jpg', 'json')
         )
+        
+        #Open the corresponding emotion json here?
         with open(detection_path, 'r') as f:
             detection = pocket.ops.to_tensor(json.load(f),
                 input_format='dict')
+        # if not self.human_emotion:
+        #     if 'human_emotion' in detection.keys():
+        #         detection.pop('human_emotion')       
 
+        # detection = pocket.ops.to_tensor(detection, input_format='dict')
+
+        # if self.human_emotion:
+        #     human_emotion = detection['human_emotion']
+        #     if human_emotion.dim() == 2:
+        #         human_emotion = human_emotion.reshape(-1, 17, 2)
+            
+        #     detection['human_emotion'] = human_emotion
+
+        #     human_emotion = target['human_emotion']
+        #     if human_emotion.dim() == 2:
+        #         human_emotion = human_emotion.reshape(-1, 17, 2)
+        #     target['human_emotion'] = human_emotion
         if self._flip[i]:
             image = hflip(image)
             w, _ = image.size

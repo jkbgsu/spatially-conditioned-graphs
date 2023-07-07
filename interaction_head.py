@@ -91,12 +91,16 @@ class InteractionHead(Module):
     ) -> None:
 
         results = []
+        test = 0
         for b_idx, detection in enumerate(detections):
             boxes = detection['boxes']
             labels = detection['labels']
             scores = detection['scores']
-
+            print(f"boxes are {boxes}")
+            print(f"labels are {labels}")
+            print(f"scores are {scores}")
             # Append ground truth during training
+            original_human_index = (labels == self.human_idx).nonzero(as_tuple=True)[0]
             if append_gt is None:
                 append_gt = self.training
             if append_gt:
@@ -109,8 +113,16 @@ class InteractionHead(Module):
                     target["object"],
                     labels
                 ])
-                if self.human_emotion:
-                    human_emotion = torch.cat([target['human_emotion'],human_emotion])
+                print(f"torch boxes shape{boxes.shape}")
+                print(f"torch scores shape {scores.shape}")
+            #if self.human_emotion:
+            print(f"torch boxes are now: {boxes}")
+            # Let's suppose the target['human_emotion'] is a tensor of size 3 filled with 1's
+            target_human_emotion = torch.ones(5)
+
+            # And human_emotion is a tensor of size 3 filled with 2's
+            human_emotion = torch.full((3,), 2)
+            human_emotion = torch.cat([target['human_emotion'],human_emotion])
 
                 
 
@@ -139,14 +151,17 @@ class InteractionHead(Module):
             # Permute humans to the top
             keep_idx = torch.cat([h_idx, o_idx])
             active_idx = active_idx[keep_idx]
-
+            
+            active_original_human_idx = active_idx[labels[active_idx]==self.human_idx]
+            active_human_idx = (original_human_index.unsqueeze(1) == active_original_human_idx).nonzero(as_tuple=True)[0]
+            
             if self.human_emotion:
                 results.append(dict(
                     boxes=boxes[active_idx].view(-1, 4), 
                     labels=labels[active_idx].view(-1),
                     scores=scores[active_idx].view(-1),
                     #TODO: Check if this is actually correct
-                    human_emotion=human_emotion[active_idx],
+                    human_emotion=human_emotion[active_human_idx],
                 ))
             else:
                 results.append(dict(
@@ -155,7 +170,9 @@ class InteractionHead(Module):
                     scores=scores[active_idx].view(-1)
                 
                 ))
-
+            test += 1
+            if test > 5:
+                exit()
         return results
 
     def compute_interaction_classification_loss(self, results: List[dict]) -> Tensor:
