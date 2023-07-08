@@ -93,14 +93,15 @@ class InteractionHead(Module):
         results = []
         test = 0
         for b_idx, detection in enumerate(detections):
-            print(f"detections are {detection}")
+            #print(f"detections are {detection}")
             boxes = detection['boxes']
             labels = detection['labels']
             scores = detection['scores']
-            human_emotions = detection['human_emotion']
-            print(f"boxes are {boxes}")
-            print(f"labels are {labels}")
-            print(f"scores are {scores}")
+            human_emotion = detection['human_emotion']
+            print(f"human_emotions are of type {type(human_emotion)} and look like {human_emotion}")
+            #print(f"boxes are {boxes}")
+            #print(f"labels are {labels}")
+            #print(f"scores are {scores}")
             # Append ground truth during training
             original_human_index = (labels == self.human_idx).nonzero(as_tuple=True)[0]
             if append_gt is None:
@@ -115,17 +116,17 @@ class InteractionHead(Module):
                     target["object"],
                     labels
                 ])
-                print(f"torch boxes shape{boxes.shape}")
-                print(f"torch scores shape {scores.shape}")
+                #print(f"torch boxes shape{boxes.shape}")
+                #print(f"torch scores shape {scores.shape}")
             #if self.human_emotion:
-            print(f"torch boxes are now: {boxes}")
+            #print(f"torch boxes are now: {boxes}")
             # Let's suppose the target['human_emotion'] is a tensor of size 3 filled with 1's
             #target_human_emotion = torch.ones(5)
 
             # And human_emotion is a tensor of size 3 filled with 2's
             #human_emotion = torch.full((3,), 2)
-            human_emotion = torch.cat([detection['human_emotion'],human_emotions])
-
+            #human_emotion = torch.cat([detection['human_emotion'],human_emotion],human_emotion)
+            #print(f"at line 129, human emotions look like: {human_emotion}")
                 
 
             # Remove low scoring examples
@@ -163,7 +164,8 @@ class InteractionHead(Module):
                     labels=labels[active_idx].view(-1),
                     scores=scores[active_idx].view(-1),
                     #TODO: Check if this is actually correct
-                    human_emotion=human_emotion[active_human_idx],
+                    # Do we need an index? we are appending one set of emotions to every box?
+                    human_emotion= torch.zeros(8) #human_emotion #human_emotion[active_human_idx],
                 ))
             else:
                 results.append(dict(
@@ -172,9 +174,9 @@ class InteractionHead(Module):
                     scores=scores[active_idx].view(-1)
                 
                 ))
-            test += 1
-            if test > 5:
-                exit()
+            #test += 1
+            #if test > 5:
+        #exit()
         return results
 
     def compute_interaction_classification_loss(self, results: List[dict]) -> Tensor:
@@ -520,7 +522,6 @@ class GraphHead(Module):
     ) -> None:
 
         super().__init__()
-
         self.out_channels = out_channels
         self.roi_pool_size = roi_pool_size
         self.node_encoding_size = node_encoding_size
@@ -686,16 +687,22 @@ class GraphHead(Module):
             assert targets is not None, "Targets should be passed during training"
 
         global_features = self.avg_pool(features['3']).flatten(start_dim=1)
-        box_features = torch.cat(box_features,human_emotion)
+        print(f"human_emotion type is: {type(human_emotion)}")
+        print(human_emotion)
+        #print(f"box_features type is: {type(box_features)}")
+        #exit()
+        #box_features = torch.cat([box_features,human_emotion],box_features)
+        print(f"proper cat")
         box_features = self.box_head(box_features)
-
+        #exit()
         num_boxes = [len(boxes_per_image) for boxes_per_image in box_coords]
         
         counter = 0
         all_boxes_h = []; all_boxes_o = []; all_object_class = []
         all_labels = []; all_prior = []
         all_box_pair_features = []
-        for b_idx, (coords, labels, scores,human_emotion) in enumerate(zip(box_coords, box_labels, box_scores,human_emotion)):
+        for b_idx, (coords, labels, scores,emotion) in enumerate(zip(box_coords, box_labels, box_scores,human_emotion)):
+            
             n = num_boxes[b_idx]
             device = box_features.device
             n_h = torch.sum(labels == self.human_idx).item()
@@ -716,8 +723,40 @@ class GraphHead(Module):
                 raise ValueError("Human detections are not permuted to the top")
 
             node_encodings = box_features[counter: counter+n]
+
+            #print(f"one node encodin")
             # Duplicate human nodes
             h_node_encodings = node_encodings[:n_h]
+            #print(f"emotion tensor type is {type(emotion)}")
+            #print(f"emotion is {emotion}")
+            #print(f"h node enc is type {type(h_node_encodings[0])}")
+            #test = torch.cat([h_node_encodings[0],emotion])
+            #min_value = torch.min()
+            #max_value = torch.max(tensor) 
+            # cannot build a tensor here because it will be on different device
+            #zero_tensor = torch.tensor([0.])
+
+            #emotion= torch.cat((emotion, zero_tensor), dim=0)
+            # Rescale the tensor between 0 and 1
+            #emotion = torch.zeros(8)
+            #emotion = (emotion - 0) / (100 - 0)
+            #print(f"shape of first h node is {h_node_encodings[0].shape}")
+            #print(f"shape of emotion: {emotion.shape}")
+            #print(rescaled_tensor)
+            # NOTE: Option here is to continue but may need a buffer of one extra zero read
+            # in from dataset so that there is an even number for the matrix.
+            #h_node_encodings = [torch.cat([h_node,emotion]) for h_node in h_node_encodings]
+            #print(f"shape of new h_node {h_node_encodings[0].shape}")
+
+            #print(f"one human node encoding is {h_node_encodings[0]}")
+            #print("good!")
+            #exit()
+            #emotions = [emotion for h_n in h_node_encodings]
+            #emotions = emotions.unsqueeze(0)
+            emotion = emotion.unsqueeze(0)
+            print(f"size of emotion is {emotion.shape}")
+            print(f"size of h_node_encodings[0] is {h_node_encodings[0].shape}")
+            self.norm_h(h_node_encodings[0] + emotion)
             # Get the pairwise index between every human and object instance
             x, y = torch.meshgrid(
                 torch.arange(n_h, device=device),
@@ -761,7 +800,7 @@ class GraphHead(Module):
                     ), dim=1)
                 )
                 h_node_encodings = self.norm_h(
-                    h_node_encodings + messages_to_h
+                    h_node_encodings + messages_to_h + emotions
                 )
 
                 # Update object nodes (including human nodes)
@@ -780,13 +819,20 @@ class GraphHead(Module):
                 all_labels.append(self.associate_with_ground_truth(
                     coords[x_keep], coords[y_keep], targets[b_idx])
                 )
-                
+            # print(f"h_node encoding shape: {h_node_encodings[x_keep].shape}")
+            # print(f"emotion shape {emotion.shape}") 
+            # print(f"h_node encoding tensor {h_node_encodings[x_keep]}")
+            # print(f"h_node encoding tensor {emotion}")
+            # exit()
             all_box_pair_features.append(torch.cat([
                 self.attention_head(
+                #appearance features
                     torch.cat([
                         h_node_encodings[x_keep],
-                        node_encodings[y_keep]
+                        node_encodings[y_keep] #, #trying to add facial features here
+                        #emotion,
                         ], 1),
+                #
                     box_pair_spatial_reshaped[x_keep, y_keep]
                 ), self.attention_head_g(
                     global_features[b_idx, None],
