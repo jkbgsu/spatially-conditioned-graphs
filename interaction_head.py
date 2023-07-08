@@ -397,7 +397,7 @@ class MultiBranchFusion(Module):
     ) -> None:
         super().__init__()
         self.cardinality = cardinality
-
+        face_size=8
         sub_repr_size = int(representation_size / cardinality)
         assert sub_repr_size * cardinality == representation_size, \
             "The given representation size should be divisible by cardinality"
@@ -518,7 +518,7 @@ class GraphHead(Module):
         num_cls: int, human_idx: int,
         object_class_to_target_class: List[list],
         fg_iou_thresh: float = 0.5,
-        num_iter: int = 2
+        num_iter: int = 2,
     ) -> None:
 
         super().__init__()
@@ -526,7 +526,6 @@ class GraphHead(Module):
         self.roi_pool_size = roi_pool_size
         self.node_encoding_size = node_encoding_size
         self.representation_size = representation_size
-
         self.num_cls = num_cls
         self.human_idx = human_idx
         self.object_class_to_target_class = object_class_to_target_class
@@ -570,7 +569,14 @@ class GraphHead(Module):
             nn.Linear(256, 1024),
             nn.ReLU(),
         )
-
+        self.emotion_head = nn.Sequential(
+                nn.Linear(8, 8),
+                nn.ReLU(),
+                nn.Linear(8, 256),
+                nn.ReLU(),
+                nn.Linear(256, 1024),
+                nn.ReLU(),
+            )
         # Spatial attention head
         self.attention_head = MultiBranchFusion(
             node_encoding_size * 2,
@@ -689,6 +695,7 @@ class GraphHead(Module):
         global_features = self.avg_pool(features['3']).flatten(start_dim=1)
         print(f"human_emotion type is: {type(human_emotion)}")
         print(human_emotion)
+
         #print(f"box_features type is: {type(box_features)}")
         #exit()
         #box_features = torch.cat([box_features,human_emotion],box_features)
@@ -739,7 +746,7 @@ class GraphHead(Module):
             #emotion= torch.cat((emotion, zero_tensor), dim=0)
             # Rescale the tensor between 0 and 1
             #emotion = torch.zeros(8)
-            #emotion = (emotion - 0) / (100 - 0)
+            emotion = (emotion - 0) / (100 - 0)
             #print(f"shape of first h node is {h_node_encodings[0].shape}")
             #print(f"shape of emotion: {emotion.shape}")
             #print(rescaled_tensor)
@@ -747,16 +754,26 @@ class GraphHead(Module):
             # in from dataset so that there is an even number for the matrix.
             #h_node_encodings = [torch.cat([h_node,emotion]) for h_node in h_node_encodings]
             #print(f"shape of new h_node {h_node_encodings[0].shape}")
+           # reshaped_tensor1 = emotion.squeeze(0)
 
+            # Apply LayerNorm on reshaped_tensor1
+            #layer_norm = nn.LayerNorm(reshaped_tensor1.size())
+            #normalized_tensor1 = layer_norm(reshaped_tensor1)
+
+            # Broadcast normalized_tensor1 to match the shape of tensor2
+            #broadcasted_tensor1 = normalized_tensor1.unsqueeze(0).expand_as(tensor2)
             #print(f"one human node encoding is {h_node_encodings[0]}")
             #print("good!")
             #exit()
             #emotions = [emotion for h_n in h_node_encodings]
             #emotions = emotions.unsqueeze(0)
-            emotion = emotion.unsqueeze(0)
+            #emotion = emotion.unsqueeze(0)
+            emotion_feat = self.emotion_head(emotion.cuda())
+            # above works so far. It's really slow though
             print(f"size of emotion is {emotion.shape}")
             print(f"size of h_node_encodings[0] is {h_node_encodings[0].shape}")
-            self.norm_h(h_node_encodings[0] + emotion)
+            h_node_encodings = self.norm_h(h_node_encodings + emotion_feat)
+            #exit()
             # Get the pairwise index between every human and object instance
             x, y = torch.meshgrid(
                 torch.arange(n_h, device=device),
@@ -800,7 +817,7 @@ class GraphHead(Module):
                     ), dim=1)
                 )
                 h_node_encodings = self.norm_h(
-                    h_node_encodings + messages_to_h + emotions
+                    h_node_encodings + messages_to_h + emotion_feat
                 )
 
                 # Update object nodes (including human nodes)
