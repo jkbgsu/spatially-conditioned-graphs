@@ -693,13 +693,13 @@ class GraphHead(Module):
             assert targets is not None, "Targets should be passed during training"
 
         global_features = self.avg_pool(features['3']).flatten(start_dim=1)
-        print(f"human_emotion type is: {type(human_emotion)}")
-        print(human_emotion)
+        #print(f"human_emotion type is: {type(human_emotion)}")
+        #print(human_emotion)
 
         #print(f"box_features type is: {type(box_features)}")
         #exit()
         #box_features = torch.cat([box_features,human_emotion],box_features)
-        print(f"proper cat")
+        #print(f"proper cat")
         box_features = self.box_head(box_features)
         #exit()
         num_boxes = [len(boxes_per_image) for boxes_per_image in box_coords]
