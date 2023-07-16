@@ -6,7 +6,7 @@ Fred Zhang <frederic.zhang@anu.edu.au>
 The Australian National University
 Australian Centre for Robotic Vision
 """
-
+#in this branch, I am trying to use a different method of combining the facial emotion scores.
 import os
 import sys
 sys.path.append("/fs/scratch/PCS0273/jkblank/jkbgsusc/repos/pocket-master/")

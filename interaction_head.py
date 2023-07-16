@@ -98,7 +98,7 @@ class InteractionHead(Module):
             labels = detection['labels']
             scores = detection['scores']
             human_emotion = detection['human_emotion']
-            print(f"human_emotions are of type {type(human_emotion)} and look like {human_emotion}")
+            #print(f"human_emotions are of type {type(human_emotion)} and look like {human_emotion}")
             #print(f"boxes are {boxes}")
             #print(f"labels are {labels}")
             #print(f"scores are {scores}")
@@ -770,8 +770,8 @@ class GraphHead(Module):
             #emotion = emotion.unsqueeze(0)
             emotion_feat = self.emotion_head(emotion.cuda())
             # above works so far. It's really slow though
-            print(f"size of emotion is {emotion.shape}")
-            print(f"size of h_node_encodings[0] is {h_node_encodings[0].shape}")
+            #print(f"size of emotion is {emotion.shape}")
+            #print(f"size of h_node_encodings[0] is {h_node_encodings[0].shape}")
             h_node_encodings = self.norm_h(h_node_encodings + emotion_feat)
             #exit()
             # Get the pairwise index between every human and object instance
