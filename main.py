@@ -8,6 +8,10 @@ Australian Centre for Robotic Vision
 """
 
 import os
+import sys
+sys.path.append("/fs/scratch/PCS0273/jkblank/jkbgsusc/repos/pocket-master/")
+#sys.path.append("/users/PCS0269/jkbgsusc/.conda/envs/pytorch_4/lib/python3.8/site-packages/torch/cuda/amp/")
+sys.path.append("/users/PCS0269/jkbgsusc/.local/bin")
 import torch
 import argparse
 import torchvision
@@ -41,7 +45,8 @@ def main(rank, args):
     valset = DataFactory(
         name=args.dataset, partition=args.partitions[1],
         data_root=args.data_root,
-        detection_root=args.val_detection_dir
+        detection_root=args.val_detection_dir,
+        human_emotion=args.human_emotion,
     )
 
     train_loader = DataLoader(
@@ -116,7 +121,8 @@ def main(rank, args):
             elif k.startswith('module.interaction_head'):
                 param_group_2.append(v)
             else:
-                raise KeyError(f"Unknown parameter name {k}")
+                print(k)
+                raise KeyError(f"Unknown parameter name here {k}")
     # Fine-tune backbone with lower learning rate
     optim = torch.optim.AdamW([
         {'params': param_group_1, 'lr': args.learning_rate * args.lr_decay},
