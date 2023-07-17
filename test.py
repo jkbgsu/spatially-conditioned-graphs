@@ -6,7 +6,10 @@ Fred Zhang <frederic.zhang@anu.edu.au>
 The Australian National University
 Australian Centre for Robotic Vision
 """
-
+import sys
+sys.path.append("/fs/scratch/PCS0273/jkblank/jkbgsusc/repos/pocket-master/")
+#sys.path.append("/users/PCS0269/jkbgsusc/.conda/envs/pytorch_4/lib/python3.8/site-packages/torch/cuda/amp/")
+sys.path.append("/users/PCS0269/jkbgsusc/.local/bin")
 import os
 import torch
 import argparse
@@ -33,6 +36,7 @@ def main(args):
             name='hicodet', partition=args.partition,
             data_root=args.data_root,
             detection_root=args.detection_dir,
+            human_emotion=True
         ), collate_fn=custom_collate, batch_size=1,
         num_workers=args.num_workers, pin_memory=True
     )
@@ -68,7 +72,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train an interaction head")
     parser.add_argument('--data-root', default='hicodet', type=str)
-    parser.add_argument('--detection-dir', default='hicodet/detections/test2015',
+    parser.add_argument('--detection-dir', default='hicodet/detections/validation2015',
                         type=str, help="Directory where detection files are stored")
     parser.add_argument('--partition', default='test2015', type=str)
     parser.add_argument('--num-iter', default=2, type=int,
