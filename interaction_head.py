@@ -376,85 +376,6 @@ class InteractionHead(Module):
 
         return results
 
-# class MultiBranchFusion(Module):
-#     """
-#     Multi-branch fusion module
-
-#     Parameters:
-#     -----------
-#     appearance_size: int
-#         Size of the appearance features
-#     spatial_size: int
-#         Size of the spatial features
-#     representation_size: int
-#         Size of the intermediate representations
-#     cardinality: int
-#         The number of homogeneous branches
-#     """
-#     def __init__(self,
-#         appearance_size: int, spatial_size: int,
-#         representation_size: int, cardinality: int
-#     ) -> None:
-#         super().__init__()
-#         self.cardinality = cardinality
-#         face_size=8
-#         sub_repr_size = int(representation_size / cardinality)
-#         assert sub_repr_size * cardinality == representation_size, \
-#             "The given representation size should be divisible by cardinality"
-#         print(f"representation size is {representation_size}")
-#         self.fc_1 = nn.ModuleList([
-#             nn.Linear(appearance_size, sub_repr_size)
-#             for _ in range(cardinality)
-#         ])
-#         self.fc_2 = nn.ModuleList([
-#             nn.Linear(spatial_size, sub_repr_size)
-#             for _ in range(cardinality)
-#         ])
-#         self.fc_3 = nn.ModuleList([
-#             nn.Linear(sub_repr_size, representation_size)
-#             for _ in range(cardinality)
-#         ])
-#         # Resize facial emotion features to representation size
-#         # self.fc_4 = nn.ModuleList([
-#         #     nn.Linear(spatial_size, sub_repr_size)
-#         #     for _ in range(cardinality)
-#         # ])
-#     # def forward(self, appearance: Tensor, spatial: Tensor, emotion: Tensor) -> Tensor:
-#     #     fusion_outputs = []
-        
-#     #     for fc1, fc2, fc3,fc4 in zip(self.fc_1, self.fc_2, self.fc_3, self.fc_4):
-#     #         print(f"size of appearance: {appearance.shape}")
-#     #         print(f"size of spatial: {spatial.shape}")
-#     #         print(f"size of emotion is {emotion.shape}")
-#     #         fc_3()
-            
-#     #         intermediate_repr = fc1(appearance) * fc2(spatial) * fc4(emotion)
-#     #         fused_repr = F.relu(fc3(intermediate_repr))
-#     #         print(f"fused_repr is {fused_repr.shape}")
-#     #         fusion_outputs.append(fused_repr)
-#     #     fusion_sum = torch.stack(fusion_outputs).sum(dim=0)
-#     #     output = F.relu(fusion_sum)
-#     #         fc_3(F.relu(fc_1(appearance) * fc_2(spatial)))
-#     #         for fc_1, fc_2, fc_3
-#     #         in zip(self.fc_1, self.fc_2, self.fc_3):
-#     #     fc_3( F.relu(fc_1(appearance) * fc_2(spatial)) )
-#     #     return output
-#     def forward(self, appearance: Tensor, spatial: Tensor) -> Tensor:
-#         return F.relu(torch.stack([
-#             fc_3(F.relu(fc_1(appearance) * fc_2(spatial)))
-#             for fc_1, fc_2, fc_3
-#             in zip(self.fc_1, self.fc_2, self.fc_3)
-#         ]).sum(dim=0))
-#     # def forward(self, appearance: Tensor, spatial: Tensor, face: Tensor) -> Tensor:
-#     #     print(f"appearance features are :{appearance.shape}")
-#     #     print(f"spatial features are {spatial.shape}")
-#     #     print(f"face is {face.shape}")
-        
-#     #     return F.relu(torch.stack([
-#     #         fc_3(F.relu(fc_1(appearance) * fc_2(spatial) * fc_4(face)))
-#     #         for fc_1, fc_2, fc_3, fc_4
-#     #         in zip(self.fc_1, self.fc_2, self.fc_3,self.fc_4)
-#     #     ]).sum(dim=0))
 
 class MultiBranchFusion(Module):
     """
@@ -499,32 +420,7 @@ class MultiBranchFusion(Module):
             nn.Linear(spatial_size, sub_repr_size)
             for _ in range(cardinality)
         ])
-    # def forward(self, appearance: Tensor, spatial: Tensor, emotion: Tensor) -> Tensor:
-    #     fusion_outputs = []
-        
-    #     for fc1, fc2, fc3,fc4 in zip(self.fc_1, self.fc_2, self.fc_3, self.fc_4):
-    #         print(f"size of appearance: {appearance.shape}")
-    #         print(f"size of spatial: {spatial.shape}")
-    #         print(f"size of emotion is {emotion.shape}")
-    #         fc_3()
-            
-    #         intermediate_repr = fc1(appearance) * fc2(spatial) * fc4(emotion)
-    #         fused_repr = F.relu(fc3(intermediate_repr))
-    #         print(f"fused_repr is {fused_repr.shape}")
-    #         fusion_outputs.append(fused_repr)
-    #     fusion_sum = torch.stack(fusion_outputs).sum(dim=0)
-    #     output = F.relu(fusion_sum)
-    #         fc_3(F.relu(fc_1(appearance) * fc_2(spatial)))
-    #         for fc_1, fc_2, fc_3
-    #         in zip(self.fc_1, self.fc_2, self.fc_3):
-    #     fc_3( F.relu(fc_1(appearance) * fc_2(spatial)) )
-    #     return output
-    # def forward(self, appearance: Tensor, spatial: Tensor) -> Tensor:
-    #     return F.relu(torch.stack([
-    #         fc_3(F.relu(fc_1(appearance) * fc_2(spatial)))
-    #         for fc_1, fc_2, fc_3
-    #         in zip(self.fc_1, self.fc_2, self.fc_3)
-    #     ]).sum(dim=0))
+
     def forward(self, appearance: Tensor, spatial: Tensor, face: Tensor=None) -> Tensor:
         print(f"appearance features are :{appearance.shape}")
         print(f"spatial features are {spatial.shape}")
@@ -535,60 +431,7 @@ class MultiBranchFusion(Module):
             for fc_1, fc_2, fc_3, fc_4
             in zip(self.fc_1, self.fc_2, self.fc_3,self.fc_4)
         ]).sum(dim=0))
-        # else:
-        #     return F.relu(torch.stack([
-        #         fc_3(F.relu(fc_1(appearance) * fc_2(spatial)))
-        #         for fc_1, fc_2, fc_3
-        #         in zip(self.fc_1, self.fc_2, self.fc_3)
-        #     ]).sum(dim=0))
-# class MultiBranchFusion(Module):
-#     def __init__(self,
-#         appearance_size: int, spatial_size: int,
-#         representation_size: int, cardinality: int
-#     ) -> None:
-#         super().__init__()
-#         self.cardinality = cardinality
-#         face_size = 8
-#         sub_repr_size = int(representation_size / cardinality)
-#         print(f"sub_repr_size is {sub_repr_size}")
-#         assert sub_repr_size * cardinality == representation_size, \
-#             "The given representation size should be divisible by cardinality"
 
-#         self.fc_1 = nn.ModuleList([
-#             nn.Linear(appearance_size, sub_repr_size)
-#             for _ in range(cardinality)
-#         ])
-#         self.fc_2 = nn.ModuleList([
-#             nn.Linear(spatial_size, sub_repr_size)
-#             for _ in range(cardinality)
-#         ])
-#         self.fc_3 = nn.ModuleList([
-#             nn.Linear(sub_repr_size, representation_size)
-#             for _ in range(cardinality)
-#         ])
-
-#         # Additional linear layer for the new set of features
-#         self.fc_4 = nn.Linear(1024, sub_repr_size)
-
-#     def forward(self, appearance: Tensor, spatial: Tensor, emotion: Tensor) -> Tensor:
-#         fusion_outputs = []
-
-#         for fc1, fc2, fc3 in zip(self.fc_1, self.fc_2, self.fc_3):
-#             # Compute intermediate representations
-#             print(f"size of appearance: {appearance.shape}")
-#             print(f"size of spatial: {spatial.shape}")
-#             intermediate_repr = F.relu(fc1(appearance) * fc2(spatial))
-#             exit()
-#             # Add the new set of features
-#             combined_repr = intermediate_repr + self.fc_4(emotion)
-
-#             # Compute final representation
-#             fusion_outputs.append(fc3(F.relu(combined_repr)))
-
-#         # Stack and sum the fusion outputs
-#         fusion_sum = torch.stack(fusion_outputs).sum(dim=0)
-
-#         return F.relu(fusion_sum)
 
 class MessageMBF(MultiBranchFusion):
     """
@@ -657,27 +500,6 @@ class MessageMBF(MultiBranchFusion):
     def forward(self, *args) -> Tensor:
         return self._forward_method(*args)
     
-
-
-# class TestNet(nn.Module):
-#     def __init__(self,n_size:int):
-#         super(TestNet, self,).__init__()
-#         self.n_size = n_size
-#         # Define a sequential model
-#         self.model = nn.Sequential(
-#             nn.Linear(8, 8),
-#             nn.ReLU(),
-#             nn.Linear(8, 256),
-#             nn.ReLU(),
-#             nn.Linear(256, n_size * 1024), #32 *1024
-#             nn.ReLU()
-#         )
-
-    # def forward(self, x):
-    #     x = self.model(x)  # Apply the sequential model
-    #     x = x.view(-1, self.n_size, 1024)  # Reshape the output
-    #     x = torch.squeeze(x)
-    #     return x.cuda() #torch.squeeze(x)
     
 class GraphHead(Module):
     """
