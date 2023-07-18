@@ -376,6 +376,86 @@ class InteractionHead(Module):
 
         return results
 
+# class MultiBranchFusion(Module):
+#     """
+#     Multi-branch fusion module
+
+#     Parameters:
+#     -----------
+#     appearance_size: int
+#         Size of the appearance features
+#     spatial_size: int
+#         Size of the spatial features
+#     representation_size: int
+#         Size of the intermediate representations
+#     cardinality: int
+#         The number of homogeneous branches
+#     """
+#     def __init__(self,
+#         appearance_size: int, spatial_size: int,
+#         representation_size: int, cardinality: int
+#     ) -> None:
+#         super().__init__()
+#         self.cardinality = cardinality
+#         face_size=8
+#         sub_repr_size = int(representation_size / cardinality)
+#         assert sub_repr_size * cardinality == representation_size, \
+#             "The given representation size should be divisible by cardinality"
+#         print(f"representation size is {representation_size}")
+#         self.fc_1 = nn.ModuleList([
+#             nn.Linear(appearance_size, sub_repr_size)
+#             for _ in range(cardinality)
+#         ])
+#         self.fc_2 = nn.ModuleList([
+#             nn.Linear(spatial_size, sub_repr_size)
+#             for _ in range(cardinality)
+#         ])
+#         self.fc_3 = nn.ModuleList([
+#             nn.Linear(sub_repr_size, representation_size)
+#             for _ in range(cardinality)
+#         ])
+#         # Resize facial emotion features to representation size
+#         # self.fc_4 = nn.ModuleList([
+#         #     nn.Linear(spatial_size, sub_repr_size)
+#         #     for _ in range(cardinality)
+#         # ])
+#     # def forward(self, appearance: Tensor, spatial: Tensor, emotion: Tensor) -> Tensor:
+#     #     fusion_outputs = []
+        
+#     #     for fc1, fc2, fc3,fc4 in zip(self.fc_1, self.fc_2, self.fc_3, self.fc_4):
+#     #         print(f"size of appearance: {appearance.shape}")
+#     #         print(f"size of spatial: {spatial.shape}")
+#     #         print(f"size of emotion is {emotion.shape}")
+#     #         fc_3()
+            
+#     #         intermediate_repr = fc1(appearance) * fc2(spatial) * fc4(emotion)
+#     #         fused_repr = F.relu(fc3(intermediate_repr))
+#     #         print(f"fused_repr is {fused_repr.shape}")
+#     #         fusion_outputs.append(fused_repr)
+#     #     fusion_sum = torch.stack(fusion_outputs).sum(dim=0)
+#     #     output = F.relu(fusion_sum)
+#     #         fc_3(F.relu(fc_1(appearance) * fc_2(spatial)))
+#     #         for fc_1, fc_2, fc_3
+#     #         in zip(self.fc_1, self.fc_2, self.fc_3):
+#     #     fc_3( F.relu(fc_1(appearance) * fc_2(spatial)) )
+#     #     return output
+#     def forward(self, appearance: Tensor, spatial: Tensor) -> Tensor:
+#         return F.relu(torch.stack([
+#             fc_3(F.relu(fc_1(appearance) * fc_2(spatial)))
+#             for fc_1, fc_2, fc_3
+#             in zip(self.fc_1, self.fc_2, self.fc_3)
+#         ]).sum(dim=0))
+#     # def forward(self, appearance: Tensor, spatial: Tensor, face: Tensor) -> Tensor:
+#     #     print(f"appearance features are :{appearance.shape}")
+#     #     print(f"spatial features are {spatial.shape}")
+#     #     print(f"face is {face.shape}")
+        
+#     #     return F.relu(torch.stack([
+#     #         fc_3(F.relu(fc_1(appearance) * fc_2(spatial) * fc_4(face)))
+#     #         for fc_1, fc_2, fc_3, fc_4
+#     #         in zip(self.fc_1, self.fc_2, self.fc_3,self.fc_4)
+#     #     ]).sum(dim=0))
+
 class MultiBranchFusion(Module):
     """
     Multi-branch fusion module
@@ -445,18 +525,22 @@ class MultiBranchFusion(Module):
     #         for fc_1, fc_2, fc_3
     #         in zip(self.fc_1, self.fc_2, self.fc_3)
     #     ]).sum(dim=0))
-    def forward(self, appearance: Tensor, spatial: Tensor, face: Tensor) -> Tensor:
+    def forward(self, appearance: Tensor, spatial: Tensor, face: Tensor=None) -> Tensor:
         print(f"appearance features are :{appearance.shape}")
         print(f"spatial features are {spatial.shape}")
         print(f"face is {face.shape}")
-        
+
         return F.relu(torch.stack([
             fc_3(F.relu(fc_1(appearance) * fc_2(spatial) * fc_4(face)))
             for fc_1, fc_2, fc_3, fc_4
             in zip(self.fc_1, self.fc_2, self.fc_3,self.fc_4)
         ]).sum(dim=0))
-
-
+        # else:
+        #     return F.relu(torch.stack([
+        #         fc_3(F.relu(fc_1(appearance) * fc_2(spatial)))
+        #         for fc_1, fc_2, fc_3
+        #         in zip(self.fc_1, self.fc_2, self.fc_3)
+        #     ]).sum(dim=0))
 # class MultiBranchFusion(Module):
 #     def __init__(self,
 #         appearance_size: int, spatial_size: int,
@@ -539,47 +623,61 @@ class MessageMBF(MultiBranchFusion):
         else:
             raise ValueError("Unknown node type \"{}\"".format(node_type))
 
-    def _forward_human_nodes(self, appearance: Tensor, spatial: Tensor) -> Tensor:
+    def _forward_human_nodes(self, appearance: Tensor, spatial: Tensor, face: Tensor) -> Tensor:
         n_h, n = spatial.shape[:2]
         assert len(appearance) == n_h, "Incorrect size of dim0 for appearance features"
+        print(f"in forward human nodes:")
+        print(f"appearance features: {appearance.shape}")
+        print(f"spatial features: {spatial.shape}")
+        print(f"facial features: {face.shape}")
+        
         return torch.stack([
             fc_3(F.relu(
                 fc_1(appearance).repeat(n, 1, 1)
                 * fc_2(spatial).permute([1, 0, 2])
-            )) for fc_1, fc_2, fc_3 in zip(self.fc_1, self.fc_2, self.fc_3)
+                * fc_4(face).repeat(n, 1, 1)
+            )) for fc_1, fc_2, fc_3, fc_4 in zip(self.fc_1, self.fc_2, self.fc_3, self.fc_4)
         ]).sum(dim=0)
-    def _forward_object_nodes(self, appearance: Tensor, spatial: Tensor) -> Tensor:
+    def _forward_object_nodes(self, appearance: Tensor, spatial: Tensor, face: Tensor) -> Tensor:
         n_h, n = spatial.shape[:2]
         assert len(appearance) == n, "Incorrect size of dim0 for appearance features"
+        print(f"in forward object nodes:")
+        print(f"appearance features: {appearance.shape}")
+        print(f"spatial features: {spatial.shape}")
+        print(f"facial features: {face.shape}")
+        
         return torch.stack([
             fc_3(F.relu(
                 fc_1(appearance).repeat(n_h, 1, 1)
                 * fc_2(spatial)
-            )) for fc_1, fc_2, fc_3 in zip(self.fc_1, self.fc_2, self.fc_3)
+                * fc_4(face).repeat(n_h, 1, 1)
+            )) for fc_1, fc_2, fc_3, fc_4 in zip(self.fc_1, self.fc_2, self.fc_3, self.fc_4)
         ]).sum(dim=0)
 
     def forward(self, *args) -> Tensor:
         return self._forward_method(*args)
+    
 
-class TestNet(nn.Module):
-    def __init__(self,n_size:int):
-        super(TestNet, self,).__init__()
-        self.n_size = n_size
-        # Define a sequential model
-        self.model = nn.Sequential(
-            nn.Linear(8, 8),
-            nn.ReLU(),
-            nn.Linear(8, 256),
-            nn.ReLU(),
-            nn.Linear(256, n_size * 1024), #32 *1024
-            nn.ReLU()
-        )
 
-    def forward(self, x):
-        x = self.model(x)  # Apply the sequential model
-        x = x.view(-1, self.n_size, 1024)  # Reshape the output
-        x = torch.squeeze(x)
-        return x.cuda() #torch.squeeze(x)
+# class TestNet(nn.Module):
+#     def __init__(self,n_size:int):
+#         super(TestNet, self,).__init__()
+#         self.n_size = n_size
+#         # Define a sequential model
+#         self.model = nn.Sequential(
+#             nn.Linear(8, 8),
+#             nn.ReLU(),
+#             nn.Linear(8, 256),
+#             nn.ReLU(),
+#             nn.Linear(256, n_size * 1024), #32 *1024
+#             nn.ReLU()
+#         )
+
+    # def forward(self, x):
+    #     x = self.model(x)  # Apply the sequential model
+    #     x = x.view(-1, self.n_size, 1024)  # Reshape the output
+    #     x = torch.squeeze(x)
+    #     return x.cuda() #torch.squeeze(x)
     
 class GraphHead(Module):
     """
@@ -861,6 +959,14 @@ class GraphHead(Module):
             print(f"emotion is now of shape {emotion.shape}")
             print(f"len of h_node encodings: {len(h_node_encodings)}")
             print(f"size is {node_encodings[0].size}")
+
+            emotions_small = self.emotion_head(emotion.cuda())
+            print(f"emotions_small shape {emotions_small.shape}")
+            emotions_small = emotions_small.unsqueeze(0)
+            small_repeat_obj = emotions_small.repeat(n,1)
+            small_repeat_hum = emotions_small.repeat(n_h,1)
+            print(f"emotions_small shape {small_repeat_obj.shape}")
+            
             #exit()
             #print(f"size of emotion is {h_node_encodings[0].shape}")
             #exit()
@@ -883,13 +989,11 @@ class GraphHead(Module):
             #emotion_broadcasted = emotion.unsqueeze(0).expand(1024) #emotion.expand_as(node_encodings[0])
             
             #emotion_feat = self.emotion_head(emotion.cuda())
-            test_mod = TestNet(n_size=n)
-            print(f"initialized test_mod")
-            emotion_feat_proper = test_mod(emotion)
-            print("started test mod")
+
+
             #emotion_feat_proper = self.emotion_head_proper(emotion.cuda())
             #emotion_test = emotion_feat_proper.reshape(34,1024)
-            print(f"emotion_feat_proper shape is {emotion_feat_proper.shape}")
+            #print(f"emotion_feat_proper shape is {emotion_feat_proper.shape}")
             #print(f"emotion_test is {emotion_test.shape}")
             
             
@@ -917,19 +1021,33 @@ class GraphHead(Module):
             box_pair_spatial = compute_spatial_encodings(
                 [coords[x]], [coords[y]], [image_shapes[b_idx]]
             )
-            print(f"box_pair_spatial:{box_pair_spatial.shape}")
+            #print(f"box_pair_spatial:{box_pair_spatial.shape}")
             box_pair_spatial = self.spatial_head(box_pair_spatial)
-            print(f"box_pair_spatial is now:{box_pair_spatial.shape}")
-            test_mod = TestNet(n_size=box_pair_spatial.shape[0])
-            print(f"initialized test_mod")
-            emotion_feat_proper = test_mod(emotion)
-            print("started test mod")
+            #print(f"box_pair_spatial is now:{box_pair_spatial.shape}")
+            #test_mod = TestNet(n_size=box_pair_spatial.shape[0])
+            #print(f"initialized test_mod")
+            #emotion_feat_proper = test_mod(emotion)
+            #print("started test mod")
             # Reshape the spatial features
             box_pair_spatial_reshaped = box_pair_spatial.reshape(n_h, n, -1)
-            print(f"box_pair_reshaped_spatial:{box_pair_spatial_reshaped.shape}")
+            #print(f"box_pair_reshaped_spatial:{box_pair_spatial_reshaped.shape}")
             #emotion_feat_proper_reshaped = emotion_feat_proper.reshape(n_h,n,-1)
             #print(f"emotion_feat_proper_reshaped: {emotion_feat_proper_reshaped.shape}")
-            
+            model_1 = nn.Sequential(
+                nn.Linear(8, 8),
+                nn.ReLU(),
+                nn.Linear(8, 256),
+                nn.ReLU(),
+                nn.Linear(256, box_pair_spatial.shape[0] * 1024), #32 *1024
+                nn.ReLU()
+            )
+            #test_mod = TestNet(n_size=n)
+            print(f"initialized test_mod")
+            emotion_feat_proper = model_1(emotion)
+            emotion_feat_proper = emotion_feat_proper.view(-1, box_pair_spatial.shape[0], 1024)  # Reshape the output
+            emotion_feat_proper = torch.squeeze(emotion_feat_proper)
+            emotion_feat_proper = emotion_feat_proper.cuda()
+            print("started test mod")
             #print(f"box pair is: {tuple((box_pair_spatial_reshaped.size()))}")
             #print(f"emotion encoding is {tuple(emotion_feat.size())}")
             #test = h_node_encodings[0].shape
@@ -937,7 +1055,7 @@ class GraphHead(Module):
             #test_emotion_encoding = emotion_feat.expand(-1,h_node_encodings[0].shape)
             #print(f"emotion encoding is {tuple(test_emotion_encoding.size())}")
             adjacency_matrix = torch.ones(n_h, n, device=device)
-
+            emotion_feat_proper_reshaped = emotion_feat_proper.reshape(n_h, n, -1)
             #for h_node in h_node_encodings:
 
             #test= [(n_embed * emotion_feat) for n_embed in h_node_encodings]
@@ -988,26 +1106,29 @@ class GraphHead(Module):
                     adjacency_matrix.softmax(dim=1)[..., None] *
                     self.obj_to_sub(
                         node_encodings,
-                        box_pair_spatial_reshaped
+                        box_pair_spatial_reshaped,
+                        small_repeat_obj #emotion_feat_proper_reshaped
                     ), dim=1)
                 )
                 h_node_encodings = self.norm_h(
                     h_node_encodings + messages_to_h #emotion_feat
                 )
-
+                print("finished one message")
 
                 # Update object nodes (including human nodes)
                 messages_to_o = F.relu(torch.sum(
                     adjacency_matrix.t().softmax(dim=1)[..., None] *
                     self.sub_to_obj(
                         h_node_encodings,
-                        box_pair_spatial_reshaped
+                        box_pair_spatial_reshaped,
+                        small_repeat_hum #h_node_encodings #emotion_feat_proper_reshaped
                     ), dim=1)
                 )
+                print("finished another message")
                 node_encodings = self.norm_o(
                     node_encodings + messages_to_o
                 )
-
+            
             if targets is not None:
                 all_labels.append(self.associate_with_ground_truth(
                     coords[x_keep], coords[y_keep], targets[b_idx])
@@ -1020,8 +1141,26 @@ class GraphHead(Module):
             # test = torch.cat([h_node_encodings[x_keep],node_encodings[y_keep]], 1)
             # print(f"input test is {test.size}")
             # print(f"shape is {test.shape()}")
+            model_2 = nn.Sequential(
+                nn.Linear(8, 8),
+                nn.ReLU(),
+                nn.Linear(8, 256),
+                nn.ReLU(),
+                nn.Linear(256, h_node_encodings[x_keep].shape[0] * 1024), #32 *1024
+                nn.ReLU()
+            )
+            #test_mod = TestNet(n_size=n)
+            print(f"initialized test_mod")
+            emotion_feat_proper = model_2(emotion)
+            emotion_feat_proper = emotion_feat_proper.view(-1, h_node_encodings[x_keep].shape[0], 1024)  # Reshape the output
+            emotion_feat_proper = torch.squeeze(emotion_feat_proper)
+            emotion_feat_proper = emotion_feat_proper.cuda()
             print(f"shape of encodings after message:{h_node_encodings[x_keep].shape}")
-            
+            #exit()
+            #test_mod = TestNet(n_size=h_node_encodings[x_keep].shape[0])
+            #emotion_feat_proper = test_mod(emotion)
+            #emotion_feat_proper = emotion_feat_proper.view(-1, self.n_size, 1024)  # Reshape the output
+            #emotion_feat_proper = torch.squeeze(emotion_feat_proper)
             #h_node_encodings_emotion= [n_embed * emotion_feat for n_embed in h_node_encodings]
             #human_test = emotion_feat * h_node_encodings[0]
             #print(f"human_feat are :{human_test.shape}")
@@ -1037,7 +1176,7 @@ class GraphHead(Module):
                     box_pair_spatial_reshaped[x_keep, y_keep], emotion_feat_proper
                 ), self.attention_head_g(
                     global_features[b_idx, None],
-                    box_pair_spatial_reshaped[x_keep, y_keep])
+                    box_pair_spatial_reshaped[x_keep, y_keep], emotion_feat_proper)
             ], dim=1))
             all_boxes_h.append(coords[x_keep])
             all_boxes_o.append(coords[y_keep])

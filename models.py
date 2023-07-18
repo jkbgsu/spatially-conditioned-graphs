@@ -109,8 +109,8 @@ class SpatiallyConditionedGraph(GenericHOINetwork):
         output_size: int = 7,
         sampling_ratio: int = 2,
         # Box pair head parameters
-        node_encoding_size: int = 1024,
-        representation_size: int = 1024,
+        node_encoding_size: int = 1024, #changed fro 1024
+        representation_size: int = 1024, #changed from 1024
         num_classes: int = 117,
         box_score_thresh: float = 0.2,
         fg_iou_thresh: float = 0.5,
