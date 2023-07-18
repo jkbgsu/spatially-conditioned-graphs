@@ -891,15 +891,7 @@ class GraphHead(Module):
             assert targets is not None, "Targets should be passed during training"
 
         global_features = self.avg_pool(features['3']).flatten(start_dim=1)
-        #print(f"human_emotion type is: {type(human_emotion)}")
-        #print(human_emotion)
-
-        #print(f"box_features type is: {type(box_features)}")
-        #exit()
-        #box_features = torch.cat([box_features,human_emotion],box_features)
-        #print(f"proper cat")
         box_features = self.box_head(box_features)
-        #exit()
         num_boxes = [len(boxes_per_image) for boxes_per_image in box_coords]
         
         counter = 0
@@ -928,34 +920,16 @@ class GraphHead(Module):
                 raise ValueError("Human detections are not permuted to the top")
 
             node_encodings = box_features[counter: counter+n]
-
-            #print(f"one node encodin")
-            # Duplicate human nodes
             h_node_encodings = node_encodings[:n_h]
-            # for idx,encoding in enumerate(h_node_encodings):
-            #     node_encoding[idx] = torch.cat
-            #print(f"emotion tensor type is {type(emotion)}")
-            #print(f"emotion is {emotion}")
-            #print(f"h node enc is type {type(h_node_encodings[0])}")
-            #test = torch.cat([h_node_encodings[0],emotion])
-            #min_value = torch.min()
-            #max_value = torch.max(tensor) 
-            # cannot build a tensor here because it will be on different device
-            #zero_tensor = torch.tensor([0.])
 
-            #emotion= torch.cat((emotion, zero_tensor), dim=0)
             # Rescale the tensor between 0 and 1
-            #emotion = torch.zeros(8)
             emotion = (emotion - 0) / (100 - 0)
-            #print(f"shape of first h node is {h_node_encodings[0].shape}")
-            #print(f"shape of emotion: {emotion.shape}")
-            #print(rescaled_tensor)
+
             # NOTE: Option here is to continue but may need a buffer of one extra zero read
             # in from dataset so that there is an even number for the matrix.
             
-            #h_node_encodings = [torch.cat([h_node,emotion.cuda()]) for h_node in h_node_encodings]
+            
             print(f"original emotion shape {emotion.shape}")
-            #emotion = emotion.reshape(8)
             print(f"emotion is now of shape {emotion.shape}")
             print(f"len of h_node encodings: {len(h_node_encodings)}")
             print(f"size is {node_encodings[0].size}")
@@ -967,41 +941,8 @@ class GraphHead(Module):
             small_repeat_hum = emotions_small.repeat(n_h,1)
             print(f"emotions_small shape {small_repeat_obj.shape}")
             
-            #exit()
-            #print(f"size of emotion is {h_node_encodings[0].shape}")
-            #exit()
-            #print(f"shape of new h_node {h_node_encodings[0].shape}")
-           # reshaped_tensor1 = emotion.squeeze(0)
-
-            # Apply LayerNorm on reshaped_tensor1
-            #layer_norm = nn.LayerNorm(reshaped_tensor1.size())
-            #normalized_tensor1 = layer_norm(reshaped_tensor1)
-
-            # Broadcast normalized_tensor1 to match the shape of tensor2
-            #broadcasted_tensor1 = normalized_tensor1.unsqueeze(0).expand_as(tensor2)
-            #print(f"one human node encoding is {h_node_encodings[0]}")
-            #print("good!")
-            #exit()
-            #emotions = [emotion for h_n in h_node_encodings]
-            #emotions = emotions.unsqueeze(0)
-            #emotion = emotion.unsqueeze(0)
-            
-            #emotion_broadcasted = emotion.unsqueeze(0).expand(1024) #emotion.expand_as(node_encodings[0])
-            
-            #emotion_feat = self.emotion_head(emotion.cuda())
-
-
-            #emotion_feat_proper = self.emotion_head_proper(emotion.cuda())
-            #emotion_test = emotion_feat_proper.reshape(34,1024)
-            #print(f"emotion_feat_proper shape is {emotion_feat_proper.shape}")
-            #print(f"emotion_test is {emotion_test.shape}")
             
             
-            # above works so far. It's really slow though
-            #print(f"size of emotion is {emotion.shape}")
-            #print(f"size of h_node_encodings[0] is {h_node_encodings[0].shape}")
-            #h_node_encodings = self.norm_h(h_node_encodings + emotion_feat)
-            #exit()
             # Get the pairwise index between every human and object instance
             x, y = torch.meshgrid(
                 torch.arange(n_h, device=device),
@@ -1015,39 +956,34 @@ class GraphHead(Module):
             # Human nodes have been duplicated and will be treated independently
             # of the humans included amongst object nodes
             x = x.flatten(); y = y.flatten()
-            #reshaped_emotion = emotion_feat.reshape(n_h, n, -1)
-            #print(f"reshaped_emotion: {tuple(reshaped_emotion.size())}")
             # Compute spatial features
             box_pair_spatial = compute_spatial_encodings(
                 [coords[x]], [coords[y]], [image_shapes[b_idx]]
             )
-            #print(f"box_pair_spatial:{box_pair_spatial.shape}")
+
             box_pair_spatial = self.spatial_head(box_pair_spatial)
-            #print(f"box_pair_spatial is now:{box_pair_spatial.shape}")
-            #test_mod = TestNet(n_size=box_pair_spatial.shape[0])
-            #print(f"initialized test_mod")
-            #emotion_feat_proper = test_mod(emotion)
-            #print("started test mod")
-            # Reshape the spatial features
+
             box_pair_spatial_reshaped = box_pair_spatial.reshape(n_h, n, -1)
+
+            mod_1_emotion = emotions_small.repeat(box_pair_spatial.shape[0],1)
             #print(f"box_pair_reshaped_spatial:{box_pair_spatial_reshaped.shape}")
             #emotion_feat_proper_reshaped = emotion_feat_proper.reshape(n_h,n,-1)
             #print(f"emotion_feat_proper_reshaped: {emotion_feat_proper_reshaped.shape}")
-            model_1 = nn.Sequential(
-                nn.Linear(8, 8),
-                nn.ReLU(),
-                nn.Linear(8, 256),
-                nn.ReLU(),
-                nn.Linear(256, box_pair_spatial.shape[0] * 1024), #32 *1024
-                nn.ReLU()
-            )
+            # model_1 = nn.Sequential(
+            #     nn.Linear(8, 8),
+            #     nn.ReLU(),
+            #     nn.Linear(8, 256),
+            #     nn.ReLU(),
+            #     nn.Linear(256, box_pair_spatial.shape[0] * 1024), #32 *1024
+            #     nn.ReLU()
+            # )
             #test_mod = TestNet(n_size=n)
-            print(f"initialized test_mod")
-            emotion_feat_proper = model_1(emotion)
-            emotion_feat_proper = emotion_feat_proper.view(-1, box_pair_spatial.shape[0], 1024)  # Reshape the output
-            emotion_feat_proper = torch.squeeze(emotion_feat_proper)
-            emotion_feat_proper = emotion_feat_proper.cuda()
-            print("started test mod")
+            # print(f"initialized test_mod")
+            # emotion_feat_proper = model_1(emotion)
+            # emotion_feat_proper = emotion_feat_proper.view(-1, box_pair_spatial.shape[0], 1024)  # Reshape the output
+            # emotion_feat_proper = torch.squeeze(emotion_feat_proper)
+            # emotion_feat_proper = emotion_feat_proper.cuda()
+            # print("started test mod")
             #print(f"box pair is: {tuple((box_pair_spatial_reshaped.size()))}")
             #print(f"emotion encoding is {tuple(emotion_feat.size())}")
             #test = h_node_encodings[0].shape
@@ -1055,48 +991,17 @@ class GraphHead(Module):
             #test_emotion_encoding = emotion_feat.expand(-1,h_node_encodings[0].shape)
             #print(f"emotion encoding is {tuple(test_emotion_encoding.size())}")
             adjacency_matrix = torch.ones(n_h, n, device=device)
-            emotion_feat_proper_reshaped = emotion_feat_proper.reshape(n_h, n, -1)
-            #for h_node in h_node_encodings:
+            #emotion_feat_proper_reshaped = emotion_feat_proper.reshape(n_h, n, -1)
 
-            #test= [(n_embed * emotion_feat) for n_embed in h_node_encodings]
-            #exit()
-            #Try to include emotion within human features:
-            #expanded_emotion_encoding = emotion_feat.unsqueeze(0).expand(34, -1)
-
-            # Concatenate the tensors along dimension 0
-            #concatenated = torch.cat([expanded_emotion_encoding, h_node_encodings], dim=0)
-            #print("Concatenated tensor shape:", concatenated.shape)
-                    
-            # Create a tensor of zeros with shape (1, 1024)
-            #zeros_tensor = torch.zeros(1, 1024)
-
-            # Expand the shape of zeros_tensor to match hnode_encoding
-            #expanded_zeros_tensor = zeros_tensor.expand(34, -1)
-
-            # Concatenate the tensors along dimension 0
-            #concatenated_node = torch.cat([expanded_zeros_tensor.cuda(), node_encodings], dim=0)
-            #concatenated_with_emotion_node_en = torch.cat([emotion_encoding.unsqueeze(0), concatenated], dim=0)
-            #print("Concatenated node tensor shape:", concatenated_node.shape)        
-            #exit() 
             for _ in range(self.num_iter):
-                # Compute weights of each edge
-                # test = torch.cat([
-                #     h_node_encodings[x],
-                #     node_encodings[y],
-                #     #test_emotion_encoding
-                #     #emotion_feat
-                # ], 1)
-                #print(f"hnode encoding is {tuple(h_node_encodings[x].size())}")
-                #print(f"input test is {test.size}")
-                #print(f"shape is {tuple(test.size())}")
-                #exit()
+
                 weights = self.attention_head(
                     torch.cat([
                         h_node_encodings[x],
                         node_encodings[y],
                     ], 1),
                     box_pair_spatial,
-                    emotion_feat_proper
+                    mod_1_emotion #emotion_feat_proper
                 )
                 print("got weights")
                 adjacency_matrix = self.adjacency(weights).reshape(n_h, n)
@@ -1133,39 +1038,25 @@ class GraphHead(Module):
                 all_labels.append(self.associate_with_ground_truth(
                     coords[x_keep], coords[y_keep], targets[b_idx])
                 )
-            # print(f"h_node encoding shape: {h_node_encodings[x_keep].shape}")
-            # print(f"emotion shape {emotion.shape}") 
-            # print(f"h_node encoding tensor {h_node_encodings[x_keep]}")
-            # print(f"h_node encoding tensor {emotion}")
-            # exit()
-            # test = torch.cat([h_node_encodings[x_keep],node_encodings[y_keep]], 1)
-            # print(f"input test is {test.size}")
-            # print(f"shape is {test.shape()}")
-            model_2 = nn.Sequential(
-                nn.Linear(8, 8),
-                nn.ReLU(),
-                nn.Linear(8, 256),
-                nn.ReLU(),
-                nn.Linear(256, h_node_encodings[x_keep].shape[0] * 1024), #32 *1024
-                nn.ReLU()
-            )
-            #test_mod = TestNet(n_size=n)
-            print(f"initialized test_mod")
-            emotion_feat_proper = model_2(emotion)
-            emotion_feat_proper = emotion_feat_proper.view(-1, h_node_encodings[x_keep].shape[0], 1024)  # Reshape the output
-            emotion_feat_proper = torch.squeeze(emotion_feat_proper)
-            emotion_feat_proper = emotion_feat_proper.cuda()
-            print(f"shape of encodings after message:{h_node_encodings[x_keep].shape}")
-            #exit()
-            #test_mod = TestNet(n_size=h_node_encodings[x_keep].shape[0])
-            #emotion_feat_proper = test_mod(emotion)
-            #emotion_feat_proper = emotion_feat_proper.view(-1, self.n_size, 1024)  # Reshape the output
-            #emotion_feat_proper = torch.squeeze(emotion_feat_proper)
-            #h_node_encodings_emotion= [n_embed * emotion_feat for n_embed in h_node_encodings]
-            #human_test = emotion_feat * h_node_encodings[0]
-            #print(f"human_feat are :{human_test.shape}")
-            #print(f"shape of encodings after message:{h_node_encodings_emotion[x_keep].shape}")
-            #exit()
+
+            # One options, using a model to incorporate the features
+            # model_2 = nn.Sequential(
+            #     nn.Linear(8, 8),
+            #     nn.ReLU(),
+            #     nn.Linear(8, 256),
+            #     nn.ReLU(),
+            #     nn.Linear(256, h_node_encodings[x_keep].shape[0] * 1024), #32 *1024
+            #     nn.ReLU()
+            # )
+            # #test_mod = TestNet(n_size=n)
+            # print(f"initialized test_mod")
+            # emotion_feat_proper = model_2(emotion)
+            # emotion_feat_proper = emotion_feat_proper.view(-1, h_node_encodings[x_keep].shape[0], 1024)  # Reshape the output
+            # emotion_feat_proper = torch.squeeze(emotion_feat_proper)
+            # emotion_feat_proper = emotion_feat_proper.cuda()
+            # print(f"shape of encodings after message:{h_node_encodings[x_keep].shape}")
+            mod_2_emotion = emotions_small.repeat(h_node_encodings[x_keep].shape[0],1)
+
             all_box_pair_features.append(torch.cat([
                 self.attention_head(
                 #appearance features
@@ -1173,10 +1064,10 @@ class GraphHead(Module):
                         h_node_encodings[x_keep],
                         node_encodings[y_keep] #, #trying to add facial features here
                         ], 1),
-                    box_pair_spatial_reshaped[x_keep, y_keep], emotion_feat_proper
+                    box_pair_spatial_reshaped[x_keep, y_keep], mod_2_emotion #emotion_feat_proper
                 ), self.attention_head_g(
                     global_features[b_idx, None],
-                    box_pair_spatial_reshaped[x_keep, y_keep], emotion_feat_proper)
+                    box_pair_spatial_reshaped[x_keep, y_keep], mod_2_emotion)
             ], dim=1))
             all_boxes_h.append(coords[x_keep])
             all_boxes_o.append(coords[y_keep])
@@ -1185,7 +1076,7 @@ class GraphHead(Module):
             all_prior.append(self.compute_prior_scores(
                 x_keep, y_keep, scores, labels)
             )
-            #exit()
+
             counter += n
 
         return all_box_pair_features, all_boxes_h, all_boxes_o, \
