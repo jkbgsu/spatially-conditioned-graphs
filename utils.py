@@ -129,11 +129,18 @@ class DataFactory(Dataset):
             self.detection_root,
             self.dataset.filename(i).replace('jpg', 'json')
         )
+        # print(f"detection path is {detection_path}")
         
         #Open the corresponding emotion json here?
         with open(detection_path, 'r') as f:
             detection = pocket.ops.to_tensor(json.load(f),
                 input_format='dict')
+        #07-23, checked that detection is indeed reading in human emotion score
+        #print(f"detection is {detection}")
+        # if torch.any(detection["human_emotion"] > 0):
+        #     print(f'utils emotion tensor {detection["human_emotion"]}')
+        #     exit()
+        # exit()
         # if not self.human_emotion:
         #     if 'human_emotion' in detection.keys():
         #         detection.pop('human_emotion')       

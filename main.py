@@ -77,6 +77,7 @@ def main(rank, args):
         human_idx = 49
         num_classes = 117
     elif args.dataset == 'vcoco':
+        #checked that indeed vcoco dataset is being used
         object_to_target = train_loader.dataset.dataset.object_to_action
         human_idx = 1
         num_classes = 24
@@ -149,7 +150,9 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', default='hicodet', type=str)
     parser.add_argument('--partitions', nargs='+', default=['train2015', 'test2015'], type=str)
     parser.add_argument('--data-root', default='hicodet', type=str)
-    parser.add_argument('--train-detection-dir', default='hicodet/detections/train2015mod', type=str) # change back to mod from train2015_30k #modified this for emotions
+    parser.add_argument('--train-detection-dir', default='hicodet/detections/train2015mod', type=str) 
+    # Must use preset partitions b/c of preprocessing. cannot manually divide any sets
+    # change back to mod from train2015_30k #modified this for emotions
     parser.add_argument('--val-detection-dir', default='hicodet/detections/test2015', type=str)
     parser.add_argument('--num-iter', default=2, type=int,
                         help="Number of iterations to run message passing")

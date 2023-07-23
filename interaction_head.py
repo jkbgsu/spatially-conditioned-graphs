@@ -98,6 +98,8 @@ class InteractionHead(Module):
             labels = detection['labels']
             scores = detection['scores']
             human_emotion = detection['human_emotion']
+            #print(f"human_emotion is {human_emotion}")
+            
             #print(f"human_emotions are of type {type(human_emotion)} and look like {human_emotion}")
             #print(f"boxes are {boxes}")
             #print(f"labels are {labels}")
@@ -158,6 +160,13 @@ class InteractionHead(Module):
             active_original_human_idx = active_idx[labels[active_idx]==self.human_idx]
             active_human_idx = (original_human_index.unsqueeze(1) == active_original_human_idx).nonzero(as_tuple=True)[0]
             
+            # add one dim to make even num
+            human_emotion_ten= torch.cat((human_emotion, torch.tensor([0]).cuda()))
+            #print(f"human_emotion is {human_emotion_ten}")
+            #test = torch.zeros(8)
+            #print(f"zeros tensor is shape {test.shape}")
+            #print(f"human_emotion tensor is shape {human_emotion_ten.shape}")
+            #exit()
             if self.human_emotion:
                 results.append(dict(
                     boxes=boxes[active_idx].view(-1, 4), 
@@ -165,7 +174,7 @@ class InteractionHead(Module):
                     scores=scores[active_idx].view(-1),
                     #TODO: Check if this is actually correct
                     # Do we need an index? we are appending one set of emotions to every box?
-                    human_emotion= torch.zeros(8) #human_emotion #human_emotion[active_human_idx],
+                    human_emotion= human_emotion_ten #human_emotion #human_emotion[active_human_idx],
                 ))
             else:
                 results.append(dict(
@@ -743,10 +752,14 @@ class GraphHead(Module):
 
             node_encodings = box_features[counter: counter+n]
             h_node_encodings = node_encodings[:n_h]
-
+            # if torch.any(emotion > 0):
+            #     print(f"emotion tensor before rescale is {emotion}")
+            #     exit()
             # Rescale the tensor between 0 and 1
             emotion = (emotion - 0) / (100 - 0)
-
+            # if torch.any(emotion > 0):
+            #     print(f"emotion after rescale is  is {emotion}")
+            #     exit()
             # NOTE: Option here is to continue but may need a buffer of one extra zero read
             # in from dataset so that there is an even number for the matrix.
             
