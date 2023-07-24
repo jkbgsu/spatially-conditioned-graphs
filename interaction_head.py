@@ -431,9 +431,9 @@ class MultiBranchFusion(Module):
         ])
 
     def forward(self, appearance: Tensor, spatial: Tensor, face: Tensor=None) -> Tensor:
-        print(f"appearance features are :{appearance.shape}")
-        print(f"spatial features are {spatial.shape}")
-        print(f"face is {face.shape}")
+        #print(f"appearance features are :{appearance.shape}")
+        #print(f"spatial features are {spatial.shape}")
+        #print(f"face is {face.shape}")
 
         return F.relu(torch.stack([
             fc_3(F.relu(fc_1(appearance) * fc_2(spatial) * fc_4(face)))
@@ -752,29 +752,25 @@ class GraphHead(Module):
 
             node_encodings = box_features[counter: counter+n]
             h_node_encodings = node_encodings[:n_h]
-            # if torch.any(emotion > 0):
-            #     print(f"emotion tensor before rescale is {emotion}")
-            #     exit()
-            # Rescale the tensor between 0 and 1
+
             emotion = (emotion - 0) / (100 - 0)
-            # if torch.any(emotion > 0):
-            #     print(f"emotion after rescale is  is {emotion}")
-            #     exit()
+            #checked here that the emotion scores were properly getting transfered
+
             # NOTE: Option here is to continue but may need a buffer of one extra zero read
             # in from dataset so that there is an even number for the matrix.
             
-            
-            print(f"original emotion shape {emotion.shape}")
-            print(f"emotion is now of shape {emotion.shape}")
-            print(f"len of h_node encodings: {len(h_node_encodings)}")
-            print(f"size is {node_encodings[0].size}")
+            print(f"processing {n}")
+            #print(f"original emotion shape {emotion.shape}")
+            #print(f"emotion is now of shape {emotion.shape}")
+            #print(f"len of h_node encodings: {len(h_node_encodings)}")
+            #print(f"size is {node_encodings[0].size}")
 
             emotions_small = self.emotion_head(emotion.cuda())
-            print(f"emotions_small shape {emotions_small.shape}")
+            #print(f"emotions_small shape {emotions_small.shape}")
             emotions_small = emotions_small.unsqueeze(0)
             small_repeat_obj = emotions_small.repeat(n,1)
             small_repeat_hum = emotions_small.repeat(n_h,1)
-            print(f"emotions_small shape {small_repeat_obj.shape}")
+            #print(f"emotions_small shape {small_repeat_obj.shape}")
             
             
             
@@ -838,7 +834,7 @@ class GraphHead(Module):
                     box_pair_spatial,
                     mod_1_emotion #emotion_feat_proper
                 )
-                print("got weights")
+                #print("got weights")
                 adjacency_matrix = self.adjacency(weights).reshape(n_h, n)
 
                 # Update human nodes
@@ -853,7 +849,7 @@ class GraphHead(Module):
                 h_node_encodings = self.norm_h(
                     h_node_encodings + messages_to_h #emotion_feat
                 )
-                print("finished one message")
+                #print("finished one message")
 
                 # Update object nodes (including human nodes)
                 messages_to_o = F.relu(torch.sum(
@@ -864,7 +860,7 @@ class GraphHead(Module):
                         small_repeat_hum #h_node_encodings #emotion_feat_proper_reshaped
                     ), dim=1)
                 )
-                print("finished another message")
+                #print("finished another message")
                 node_encodings = self.norm_o(
                     node_encodings + messages_to_o
                 )

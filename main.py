@@ -112,10 +112,12 @@ def main(rank, args):
         print_interval=args.print_interval,
         cache_dir=args.cache_dir
     )
+    print("created engine")
     # Seperate backbone parameters from the rest
     param_group_1 = []
     param_group_2 = []
     for k, v in engine.fetch_state_key('net').named_parameters():
+        #print(k,v)
         if v.requires_grad:
             if k.startswith('module.backbone'):
                 param_group_1.append(v)
@@ -123,7 +125,7 @@ def main(rank, args):
                 param_group_2.append(v)
             else:
                 print(k)
-                raise KeyError(f"Unknown parameter name here {k}")
+                #raise KeyError(f"Unknown parameter name here {k}")
     # Fine-tune backbone with lower learning rate
     optim = torch.optim.AdamW([
         {'params': param_group_1, 'lr': args.learning_rate * args.lr_decay},
@@ -149,11 +151,11 @@ if __name__ == '__main__':
                         help="Number of subprocesses/GPUs to use")
     parser.add_argument('--dataset', default='hicodet', type=str)
     parser.add_argument('--partitions', nargs='+', default=['train2015', 'test2015'], type=str)
-    parser.add_argument('--data-root', default='hicodet', type=str)
-    parser.add_argument('--train-detection-dir', default='hicodet/detections/train2015mod', type=str) 
+    parser.add_argument('--data-root', default='hicodet', type=str) #train2015_emotions_avg
+    parser.add_argument('--train-detection-dir', default='hicodet/detections/train2015_emotions_avg', type=str) 
     # Must use preset partitions b/c of preprocessing. cannot manually divide any sets
-    # change back to mod from train2015_30k #modified this for emotions
-    parser.add_argument('--val-detection-dir', default='hicodet/detections/test2015', type=str)
+    # change back to mod from train2015_30k #modified this for emotions #test2015_emotions_avg
+    parser.add_argument('--val-detection-dir', default='hicodet/detections/test2015_emotions_avg', type=str)
     parser.add_argument('--num-iter', default=2, type=int,
                         help="Number of iterations to run message passing")
     parser.add_argument('--num-epochs', default=8, type=int)
@@ -170,7 +172,7 @@ if __name__ == '__main__':
     parser.add_argument('--max-object', default=15, type=int)
     parser.add_argument('--milestones', nargs='+', default=[6,], type=int,
                         help="The epoch number when learning rate is reduced")
-    parser.add_argument('--num-workers', default=1, type=int)
+    parser.add_argument('--num-workers', default=4, type=int)
     parser.add_argument('--print-interval', default=300, type=int)
     parser.add_argument('--checkpoint-path', default='', type=str)
     parser.add_argument('--cache-dir', type=str, default='./checkpoints')
@@ -179,6 +181,6 @@ if __name__ == '__main__':
     print(args)
 
     os.environ["MASTER_ADDR"] = "localhost"
-    os.environ["MASTER_PORT"] = "8888"
+    os.environ["MASTER_PORT"] = "8870" #was 8888, now
 
     mp.spawn(main, nprocs=args.world_size, args=(args,))
