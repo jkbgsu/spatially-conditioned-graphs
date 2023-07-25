@@ -716,6 +716,7 @@ class GraphHead(Module):
         all_boxes_h = []; all_boxes_o = []; all_object_class = []
         all_labels = []; all_prior = []
         all_box_pair_features = []
+
         for b_idx, (coords, labels, scores,emotion) in enumerate(zip(box_coords, box_labels, box_scores,human_emotion)):
             
             n = num_boxes[b_idx]
@@ -757,7 +758,7 @@ class GraphHead(Module):
             #print(f"h_node_encodings size is {h_node_encodings.shape}")
             #node_emotions_reap = node_emotions.repeat(n_h,1)
             #print(f"node_emotions_reap size: {node_emotions_reap.shape}")
-            h_node_encodings = self.norm_h(h_node_encodings + node_emotions)
+            #h_node_encodings = self.norm_h(h_node_encodings + node_emotions)
             #exit()
             #emotions_small = self.emotion_head(emotion.cuda())
             #print(f"emotions_small shape {emotions_small.shape}")
@@ -841,7 +842,7 @@ class GraphHead(Module):
                     ), dim=1)
                 )
                 h_node_encodings = self.norm_h(
-                    h_node_encodings + messages_to_h
+                    h_node_encodings + messages_to_h + node_emotions
                 )
                 #print("finished one message")
 
