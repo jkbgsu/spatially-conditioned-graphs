@@ -181,6 +181,6 @@ if __name__ == '__main__':
     print(args)
 
     os.environ["MASTER_ADDR"] = "localhost"
-    os.environ["MASTER_PORT"] = "8870" #was 8888, now
+    os.environ["MASTER_PORT"] = "8888" #was 8888, now
 
     mp.spawn(main, nprocs=args.world_size, args=(args,))
