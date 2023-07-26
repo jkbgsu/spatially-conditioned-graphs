@@ -2,11 +2,11 @@
 #SBATCH --ntasks-per-node=1
 #####SBATCH --cpus-per-task=1
 #SBATCH --gpus-per-node=2
-#SBATCH --output=7_24/hicodet_test_stdout_07-15-23_%j.txt
-#SBATCH --error=7_24/hicodet_test_error_07-15-23_%j.txt
+#SBATCH --output=7_26/hicodet_test_sum_stdout_07-26-23_%j.txt
+#SBATCH --error=7_26/hicodet_test_sum_error_07-26-23_%j.txt
 #SBATCH --mem=256G
 #SBATCH --time=12:00:00
-#SBATCH --job-name=test_torch_hicodet
+#SBATCH --job-name=hicodet_simple_comb
 #SBATCH --account=PCS0273
 
 
@@ -25,4 +25,4 @@ cd /fs/scratch/PCS0273/jkblank/jkbgsusc/repos/SCG-JB/spatially-conditioned-graph
 pwd
 python -c "import torch; print(torch.device('cuda' if torch.cuda.is_available() else 'cpu'))"
 nvcc --version
-python main.py --world-size 2 --human-emotion True --cache-dir checkpoints/hicodet_7_23/
+python main.py --world-size 2 --human-emotion True --cache-dir checkpoints/hicodet_7_26_sum/

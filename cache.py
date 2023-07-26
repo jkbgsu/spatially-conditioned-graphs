@@ -153,6 +153,7 @@ def main(args):
             name=args.dataset, partition=args.partition,
             data_root=args.data_root,
             detection_root=args.detection_dir,
+            human_emotion=True
         ), collate_fn=custom_collate, batch_size=1,
         num_workers=args.num_workers, pin_memory=True
     )
