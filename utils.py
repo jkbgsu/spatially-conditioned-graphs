@@ -43,7 +43,7 @@ class DataFactory(Dataset):
             flip=False,
             box_score_thresh_h=0.2,
             box_score_thresh_o=0.2,
-            human_emotion=False
+            human_emotion=True
             ):
         if name not in ['hicodet', 'vcoco']:
             raise ValueError("Unknown dataset ", name)
