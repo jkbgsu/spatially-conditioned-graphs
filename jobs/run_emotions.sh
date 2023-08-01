@@ -2,10 +2,10 @@
 #SBATCH --ntasks-per-node=1
 #####SBATCH --cpus-per-task=1
 #SBATCH --gpus-per-node=4
-#SBATCH --output=facial_emotion_results/emotion_test_cuda_stdout_07-15-23_%j.txt
-#SBATCH --error=facial_emotion_results/emotion_test_cuda_error_07-15-23_%j.txt
+#SBATCH --output=vcoco_pretrain_hicodet_test_logs/hicodet_test_stdout_07-15-23_%j.txt
+#SBATCH --error=vcoco_pretrain_hicodet_test_logs/hicodet_test_error_07-15-23_%j.txt
 #SBATCH --mem=256G
-#SBATCH --time=10:00:00
+#SBATCH --time=01:00:00
 #SBATCH --job-name=hicodet_emotion_SCG
 #SBATCH --account=PCS0273
 
@@ -45,6 +45,6 @@ cd /fs/scratch/PCS0273/jkblank/jkbgsusc/repos/SCG-JB/spatially-conditioned-graph
 pwd
 python -c "import torch; print(torch.device('cuda' if torch.cuda.is_available() else 'cpu'))"
 nvcc --version
-CUDA_LAUNCH_BLOCKING=1 python main.py --world-size 4 --human-emotion True
+CUDA_LAUNCH_BLOCKING=1 python main.py --world-size 4 --human-emotion True --cache-dir checkpoints/hicodet/
 
 

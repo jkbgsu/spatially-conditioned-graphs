@@ -747,14 +747,14 @@ class GraphHead(Module):
             # NOTE: Option here is to continue but may need a buffer of one extra zero read
             # in from dataset so that there is an even number for the matrix.
             
-            print(f"processing {n}")
+            #print(f"processing {n}")
             #print(f"original emotion shape {emotion.shape}")
             #print(f"emotion is now of shape {emotion.shape}")
             #print(f"len of h_node encodings: {len(h_node_encodings)}")
             #print(f"size is {node_encodings[0].size}")
 
             node_emotions = self.emotion_node_head(emotion.cuda())
-            print(f"node_emotions_size is {node_emotions.shape}")
+            #print(f"node_emotions_size is {node_emotions.shape}")
             #print(f"h_node_encodings size is {h_node_encodings.shape}")
             #node_emotions_reap = node_emotions.repeat(n_h,1)
             #print(f"node_emotions_reap size: {node_emotions_reap.shape}")
@@ -766,7 +766,7 @@ class GraphHead(Module):
             #small_repeat_obj = emotions_small.repeat(n,1)
             #small_repeat_hum = emotions_small.repeat(n_h,1)
             #print(f"emotions_small shape {small_repeat_obj.shape}")
-            
+        
             
             
             # Get the pairwise index between every human and object instance
@@ -819,52 +819,115 @@ class GraphHead(Module):
             adjacency_matrix = torch.ones(n_h, n, device=device)
             #emotion_feat_proper_reshaped = emotion_feat_proper.reshape(n_h, n, -1)
 
-            for _ in range(self.num_iter):
+            messages_to_send = self.num_iter
+            if torch.all(torch.isclose(emotion, torch.zeros_like(emotion))):
+                # No emotions, update as regular
+                #print("regular update")
+                messages_to_send = self.num_iter
+                for _ in range(messages_to_send):
 
-                weights = self.attention_head(
-                    torch.cat([
-                        h_node_encodings[x],
-                        node_encodings[y],
-                    ], 1),
-                    box_pair_spatial,
-                    #mod_1_emotion #emotion_feat_proper
-                )
-                #print("got weights")
-                adjacency_matrix = self.adjacency(weights).reshape(n_h, n)
+                    weights = self.attention_head(
+                        torch.cat([
+                            h_node_encodings[x],
+                            node_encodings[y],
+                        ], 1),
+                        box_pair_spatial,
+                        #mod_1_emotion #emotion_feat_proper
+                    )
+                    #print("got weights")
+                    adjacency_matrix = self.adjacency(weights).reshape(n_h, n)
 
-                # Update human nodes
-                messages_to_h = F.relu(torch.sum(
-                    adjacency_matrix.softmax(dim=1)[..., None] *
-                    self.obj_to_sub(
-                        node_encodings,
-                        box_pair_spatial_reshaped,
-                        #small_repeat_obj #emotion_feat_proper_reshaped
-                    ), dim=1)
-                )
-                h_node_encodings = self.norm_h(
-                    h_node_encodings + messages_to_h + node_emotions
-                )
-                #print("finished one message")
+                    # Update human nodes
+                    messages_to_h = F.relu(torch.sum(
+                        adjacency_matrix.softmax(dim=1)[..., None] *
+                        self.obj_to_sub(
+                            node_encodings,
+                            box_pair_spatial_reshaped,
+                            #small_repeat_obj #emotion_feat_proper_reshaped
+                        ), dim=1)
+                    )
+                    h_node_encodings = self.norm_h(
+                        h_node_encodings + messages_to_h + node_emotions
+                    )
+                    #print("finished one message")
 
-                # Update object nodes (including human nodes)
-                messages_to_o = F.relu(torch.sum(
-                    adjacency_matrix.t().softmax(dim=1)[..., None] *
-                    self.sub_to_obj(
-                        h_node_encodings,
-                        box_pair_spatial_reshaped,
-                        #small_repeat_hum #h_node_encodings #emotion_feat_proper_reshaped
-                    ), dim=1)
-                )
-                #print("finished another message")
-                node_encodings = self.norm_o(
-                    node_encodings + messages_to_o
-                )
+                    # Update object nodes (including human nodes)
+                    messages_to_o = F.relu(torch.sum(
+                        adjacency_matrix.t().softmax(dim=1)[..., None] *
+                        self.sub_to_obj(
+                            h_node_encodings,
+                            box_pair_spatial_reshaped,
+                            #small_repeat_hum #h_node_encodings #emotion_feat_proper_reshaped
+                        ), dim=1)
+                    )
+                    #print("finished another message")
+                    node_encodings = self.norm_o(
+                        node_encodings + messages_to_o + node_emotions
+                    )
+            else:
+                #print("emotion update")
+                # Found emotions, update human objects more frequently
+                messages_to_send = self.num_iter + 2
+
+                for _ in range(messages_to_send):
+
+                    weights = self.attention_head(
+                        torch.cat([
+                            h_node_encodings[x],
+                            node_encodings[y],
+                        ], 1),
+                        box_pair_spatial,
+                        #mod_1_emotion #emotion_feat_proper
+                    )
+                    #print("got weights")
+                    adjacency_matrix = self.adjacency(weights).reshape(n_h, n)
+
+                    # Update human nodes
+                    messages_to_h = F.relu(torch.sum(
+                        adjacency_matrix.softmax(dim=1)[..., None] *
+                        self.obj_to_sub(
+                            node_encodings,
+                            box_pair_spatial_reshaped,
+                            #small_repeat_obj #emotion_feat_proper_reshaped
+                        ), dim=1)
+                    )
+                    h_node_encodings = self.norm_h(
+                        h_node_encodings + messages_to_h + node_emotions
+                    )
+                    #print("finished one message")
+                for _ in range(self.num_iter):
+
+                    weights = self.attention_head(
+                        torch.cat([
+                            h_node_encodings[x],
+                            node_encodings[y],
+                        ], 1),
+                        box_pair_spatial,
+                        #mod_1_emotion #emotion_feat_proper
+                    )
+                    #print("got weights")
+                    adjacency_matrix = self.adjacency(weights).reshape(n_h, n)
+                    # Update object nodes (including human nodes)
+                    messages_to_o = F.relu(torch.sum(
+                        adjacency_matrix.t().softmax(dim=1)[..., None] *
+                        self.sub_to_obj(
+                            h_node_encodings,
+                            box_pair_spatial_reshaped,
+                            #small_repeat_hum #h_node_encodings #emotion_feat_proper_reshaped
+                        ), dim=1)
+                    )
+                    #print("finished another message")
+                    node_encodings = self.norm_o(
+                        node_encodings + messages_to_o + node_emotions
+                    )
             
             if targets is not None:
                 all_labels.append(self.associate_with_ground_truth(
                     coords[x_keep], coords[y_keep], targets[b_idx])
                 )
 
+            # if trigger==True:
+            #     exit()
             # One options, using a model to incorporate the features
             # model_2 = nn.Sequential(
             #     nn.Linear(8, 8),
